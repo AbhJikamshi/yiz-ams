@@ -1,0 +1,82 @@
+### Home
+GET http://localhost:5000/
+
+###
+
+### Test API
+GET http://localhost:5000/test
+
+###
+
+### Get all members
+GET http://localhost:5000/api/members
+
+###
+
+### Get member by ID
+GET http://localhost:5000/api/members/1
+
+###
+
+### Create Member
+POST http://localhost:5000/api/members
+Content-Type: application/json
+
+{
+  "fullName": "Musa Bello",
+  "phone": "08098765432",
+  "email": "musa@example.com"
+}
+
+###
+
+### Get member by ID (existing)
+GET http://localhost:5000/api/members/1
+
+###
+
+### Get member by ID (non-existing)
+GET http://localhost:5000/api/members/999
+
+###
+
+### Update Member
+PUT http://localhost:5000/api/members/1
+Content-Type: application/json
+
+{
+  "fullName": "Abdullahi Halliru Abdulhamid",
+  "phone": "07038491180",
+  "email": "abdullahi.updated@example.com"
+}
+###
+
+### Delete Member
+###
+
+### Delete Member
+DELETE http://localhost:5000/api/members/2
+
+### Test Validation
+###
+
+### Test Validation
+POST http://localhost:5000/api/members
+Content-Type: application/json
+
+{
+  "fullName": "",
+  "phone": "123",
+  "email": "not-an-email"
+}
+
+### Register Admin
+### Register Admin
+POST http://localhost:5000/api/admin/register
+Content-Type: application/json
+
+{
+  "fullName": "Abdullahi Halliru Abdulhamid",
+  "email": "admin@yizams.com",
+  "password": "Password123"
+}
