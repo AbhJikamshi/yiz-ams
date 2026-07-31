@@ -9,58 +9,41 @@ import {
   remove,
 } from "../controllers/contributionController.js";
 
-import { validateContribution } from "../middlewares/contributionValidation.js";
+import contributionValidation from "../middlewares/contributionValidation.js";
 import authMiddleware from "../middlewares/authMiddleware.js";
 import authorize from "../middlewares/authorize.js";
 
 const router = express.Router();
 
-// =====================================
-// All contribution routes require login
-// =====================================
+// All contribution routes require authentication
 router.use(authMiddleware);
 
-// =====================================
 // Get all contributions
-// =====================================
 router.get("/", getAll);
 
-// =====================================
-// Get one contribution
-// =====================================
+// Get contribution by ID
 router.get("/:id", getById);
 
-// =====================================
-// Get contributions by member
-// =====================================
+// Get contributions for a member
 router.get("/member/:memberId", getByMember);
 
-// =====================================
-// Create contribution
-// Admin only
-// =====================================
+// Create contribution (Admin only)
 router.post(
   "/",
   authorize("ADMIN"),
-  validateContribution,
+  contributionValidation,
   create
 );
 
-// =====================================
-// Update contribution
-// Admin only
-// =====================================
+// Update contribution (Admin only)
 router.put(
   "/:id",
   authorize("ADMIN"),
-  validateContribution,
+  contributionValidation,
   update
 );
 
-// =====================================
-// Delete contribution
-// Admin only
-// =====================================
+// Delete contribution (Admin only)
 router.delete(
   "/:id",
   authorize("ADMIN"),

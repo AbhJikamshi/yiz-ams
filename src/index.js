@@ -8,7 +8,8 @@ import adminRoutes from "./routes/adminRoutes.js";
 import contributionRoutes from "./routes/contributionRoutes.js";
 import expenseRoutes from "./routes/expenseRoutes.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
-
+import settingsRoutes from "./routes/settingsRoutes.js";
+import reportRoutes from "./routes/reportRoutes.js";
 // Middlewares
 import notFound from "./middlewares/notFound.js";
 import errorHandler from "./middlewares/errorHandler.js";
@@ -44,6 +45,8 @@ app.use("/api/members", memberRoutes);
 app.use("/api/contributions", contributionRoutes);
 app.use("/api/expenses", expenseRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/settings", settingsRoutes);
+app.use("/api/reports", reportRoutes);
 
 // ===========================
 // Error Handling

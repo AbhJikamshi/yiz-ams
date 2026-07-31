@@ -1,42 +1,50 @@
-import { body, validationResult } from "express-validator";
+const contributionValidation = (req, res, next) => {
+  const {
+    monthNumber,
+    year,
+    amount,
+    memberId,
+    status,
+  } = req.body;
 
-// ===============================
-// Contribution Validation Rules
-// ===============================
-export const validateContribution = [
-  body("month")
-    .trim()
-    .notEmpty()
-    .withMessage("Month is required."),
+  if (!monthNumber || monthNumber < 1 || monthNumber > 12) {
+    return res.status(400).json({
+      success: false,
+      message: "Month number must be between 1 and 12.",
+    });
+  }
 
-  body("year")
-    .isInt({ min: 2000, max: 2100 })
-    .withMessage("Enter a valid year."),
+  if (!year || year < 2000) {
+    return res.status(400).json({
+      success: false,
+      message: "Valid year is required.",
+    });
+  }
 
-  body("amount")
-    .isFloat({ gt: 0 })
-    .withMessage("Amount must be greater than zero."),
+  if (!amount || amount <= 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Amount must be greater than zero.",
+    });
+  }
 
-  body("memberId")
-    .isInt({ gt: 0 })
-    .withMessage("Valid member ID is required."),
+  if (!memberId) {
+    return res.status(400).json({
+      success: false,
+      message: "Member ID is required.",
+    });
+  }
 
-  body("status")
-    .optional()
-    .isIn(["PAID", "PENDING"])
-    .withMessage("Status must be either PAID or PENDING."),
+  const allowedStatus = ["PAID", "PENDING", "PARTIAL", "WAIVED"];
 
-  (req, res, next) => {
-    const errors = validationResult(req);
+  if (status && !allowedStatus.includes(status)) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid contribution status.",
+    });
+  }
 
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: "Validation failed.",
-        errors: errors.array(),
-      });
-    }
+  next();
+};
 
-    next();
-  },
-];
+export default contributionValidation;

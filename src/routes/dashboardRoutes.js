@@ -1,11 +1,15 @@
 import express from "express";
-import { dashboard } from "../controllers/dashboardController.js";
-import protect from "../middlewares/authMiddleware.js";
+import authMiddleware from "../middlewares/authMiddleware.js";
 import authorize from "../middlewares/authorize.js";
+import { getDashboard } from "../controllers/dashboardController.js";
 
 const router = express.Router();
 
-// Dashboard is accessible only to Admins
-router.get("/", protect, authorize("ADMIN"), dashboard);
+router.get(
+  "/",
+  authMiddleware,
+  authorize("ADMIN"),
+  getDashboard
+);
 
 export default router;

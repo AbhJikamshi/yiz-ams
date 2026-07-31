@@ -1,20 +1,10 @@
-import {
-  createContribution,
-  getContributions,
-  getContributionById,
-  getContributionsByMember,
-  updateContribution,
-  deleteContribution,
-} from "../services/contributionService.js";
+import * as contributionService from "../services/contributionService.js";
 
-// ===============================
-// Create Contribution
-// ===============================
 export const create = async (req, res, next) => {
   try {
-    const contribution = await createContribution(req.body);
+    const contribution = await contributionService.createContribution(req.body);
 
-    return res.status(201).json({
+    res.status(201).json({
       success: true,
       message: "Contribution recorded successfully.",
       data: contribution,
@@ -24,14 +14,11 @@ export const create = async (req, res, next) => {
   }
 };
 
-// ===============================
-// Get All Contributions
-// ===============================
 export const getAll = async (req, res, next) => {
   try {
-    const contributions = await getContributions();
+    const contributions = await contributionService.getContributions();
 
-    return res.status(200).json({
+    res.json({
       success: true,
       data: contributions,
     });
@@ -40,23 +27,13 @@ export const getAll = async (req, res, next) => {
   }
 };
 
-// ===============================
-// Get Contribution by ID
-// ===============================
 export const getById = async (req, res, next) => {
   try {
-    const id = Number(req.params.id);
+    const contribution = await contributionService.getContributionById(
+      req.params.id
+    );
 
-    const contribution = await getContributionById(id);
-
-    if (!contribution) {
-      return res.status(404).json({
-        success: false,
-        message: "Contribution not found.",
-      });
-    }
-
-    return res.status(200).json({
+    res.json({
       success: true,
       data: contribution,
     });
@@ -65,16 +42,14 @@ export const getById = async (req, res, next) => {
   }
 };
 
-// ===============================
-// Get Contributions by Member
-// ===============================
 export const getByMember = async (req, res, next) => {
   try {
-    const memberId = Number(req.params.memberId);
+    const contributions =
+      await contributionService.getContributionsByMember(
+        req.params.memberId
+      );
 
-    const contributions = await getContributionsByMember(memberId);
-
-    return res.status(200).json({
+    res.json({
       success: true,
       data: contributions,
     });
@@ -83,16 +58,15 @@ export const getByMember = async (req, res, next) => {
   }
 };
 
-// ===============================
-// Update Contribution
-// ===============================
 export const update = async (req, res, next) => {
   try {
-    const id = Number(req.params.id);
+    const contribution =
+      await contributionService.updateContribution(
+        req.params.id,
+        req.body
+      );
 
-    const contribution = await updateContribution(id, req.body);
-
-    return res.status(200).json({
+    res.json({
       success: true,
       message: "Contribution updated successfully.",
       data: contribution,
@@ -102,16 +76,11 @@ export const update = async (req, res, next) => {
   }
 };
 
-// ===============================
-// Delete Contribution
-// ===============================
 export const remove = async (req, res, next) => {
   try {
-    const id = Number(req.params.id);
+    await contributionService.deleteContribution(req.params.id);
 
-    await deleteContribution(id);
-
-    return res.status(200).json({
+    res.json({
       success: true,
       message: "Contribution deleted successfully.",
     });
