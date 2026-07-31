@@ -8,3 +8,20 @@ node_modules/
 .agents/
 .claude/
 .windsurf/
+
+# Generated reports
+*.xlsx
+*.pdf
+
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+
+# Build output
+dist/
+coverage/
+
+# Logs
+*.log
