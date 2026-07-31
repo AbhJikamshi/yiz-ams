@@ -18,6 +18,13 @@ router.get(
   reportController.contributionReport
 );
 
+// Download Contributions Excel
+router.get(
+  "/contributions/excel",
+  authMiddleware,
+  reportController.downloadContributionExcel
+);
+
 // Expense Report
 router.get(
   "/expenses",

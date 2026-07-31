@@ -1,7 +1,6 @@
 import * as reportService from "../services/reportService.js";
 import prisma from "../config/prisma.js";
 import { generateReceiptPDF } from "../pdf/receiptPdf.js";
-
 export const financialSummary = async (req, res, next) => {
   try {
     const summary = await reportService.getFinancialSummary();
@@ -75,6 +74,27 @@ export const downloadReceiptPDF = async (req, res, next) => {
     }
 
     generateReceiptPDF(res, contribution);
+  } catch (error) {
+    next(error);
+  }
+};
+export const downloadContributionExcel = async (req, res, next) => {
+  try {
+    const workbook = await reportService.getContributionWorkbook();
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=ContributionReport.xlsx"
+    );
+
+    await workbook.xlsx.write(res);
+
+    res.end();
   } catch (error) {
     next(error);
   }
