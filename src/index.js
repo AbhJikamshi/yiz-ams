@@ -1,10 +1,15 @@
 import express from "express";
-import cors from "cors";
 import dotenv from "dotenv";
+import cors from "cors";
 
+// Routes
 import memberRoutes from "./routes/memberRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import contributionRoutes from "./routes/contributionRoutes.js";
+import expenseRoutes from "./routes/expenseRoutes.js";
+import dashboardRoutes from "./routes/dashboardRoutes.js";
 
+// Middlewares
 import notFound from "./middlewares/notFound.js";
 import errorHandler from "./middlewares/errorHandler.js";
 
@@ -12,45 +17,43 @@ dotenv.config();
 
 const app = express();
 
-// ===============================
-// Middlewares
-// ===============================
+// ===========================
+// Global Middlewares
+// ===========================
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// ===============================
-// Routes
-// ===============================
+// ===========================
+// Root Route
+// ===========================
 app.get("/", (req, res) => {
   res.json({
+    success: true,
     message: "🚀 YIZ-AMS Backend is Running!",
     version: "1.0.0",
     status: "OK",
   });
 });
 
-app.get("/test", (req, res) => {
-  res.json({
-    success: true,
-  });
-});
-
-// Authentication Routes
+// ===========================
+// API Routes
+// ===========================
 app.use("/api/admin", adminRoutes);
-
-// Member Routes
 app.use("/api/members", memberRoutes);
+app.use("/api/contributions", contributionRoutes);
+app.use("/api/expenses", expenseRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
-// ===============================
-// 404 Handler
-// ===============================
+// ===========================
+// Error Handling
+// ===========================
 app.use(notFound);
-
-// ===============================
-// Global Error Handler
-// ===============================
 app.use(errorHandler);
 
+// ===========================
+// Server
+// ===========================
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {

@@ -8,11 +8,13 @@ datasource db {
 }
 
 model Member {
-  id        Int      @id @default(autoincrement())
-  fullName  String
-  phone     String   @unique
-  email     String?
-  createdAt DateTime @default(now())
+  id            Int             @id @default(autoincrement())
+  fullName      String
+  phone         String          @unique
+  email         String?
+  createdAt     DateTime        @default(now())
+
+  contributions Contribution[]
 }
 
 model Admin {
@@ -22,4 +24,35 @@ model Admin {
   password  String
   role      String   @default("ADMIN")
   createdAt DateTime @default(now())
+}
+
+model Contribution {
+  id          Int      @id @default(autoincrement())
+  month       String
+  year        Int
+  amount      Float
+  status      String   @default("PAID")
+
+  paymentDate DateTime @default(now())
+
+  memberId    Int
+  member      Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  @@unique([memberId, month, year])
+}
+
+model Expense {
+  id           Int      @id @default(autoincrement())
+  title        String
+  description  String?
+  category     String
+  amount       Float
+
+  expenseDate  DateTime
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now()) @updatedAt
 }
