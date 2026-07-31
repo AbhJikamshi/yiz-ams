@@ -99,3 +99,45 @@ export const downloadContributionExcel = async (req, res, next) => {
     next(error);
   }
 };
+export const downloadMemberExcel = async (req, res, next) => {
+  try {
+    const workbook = await reportService.getMemberWorkbook();
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=MembersReport.xlsx"
+    );
+
+    await workbook.xlsx.write(res);
+
+    res.end();
+  } catch (error) {
+    next(error);
+  }
+};
+export const downloadExpenseExcel = async (req, res, next) => {
+  try {
+    const workbook = await reportService.getExpenseWorkbook();
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=ExpenseReport.xlsx"
+    );
+
+    await workbook.xlsx.write(res);
+
+    res.end();
+  } catch (error) {
+    next(error);
+  }
+};

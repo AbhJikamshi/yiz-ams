@@ -31,8 +31,17 @@ router.get(
   authMiddleware,
   reportController.expenseReport
 );
-
+router.get(
+  "/expenses/excel",
+  authMiddleware,
+  reportController.downloadExpenseExcel
+);
 // Member Statement
+router.get(
+  "/members/excel",
+  authMiddleware,
+  reportController.downloadMemberExcel
+);
 router.get(
   "/member/:memberId",
   authMiddleware,

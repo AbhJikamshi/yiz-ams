@@ -1,5 +1,7 @@
 import prisma from "../config/prisma.js";
 import { generateContributionExcel } from "../excel/contributionExcel.js";
+import { generateMemberExcel } from "../excel/memberExcel.js";
+import { generateExpenseExcel } from "../excel/expenseExcel.js";
 export const getFinancialSummary = async () => {
   const settings = await prisma.setting.findFirst();
 
@@ -162,4 +164,23 @@ export const getContributionWorkbook = async () => {
   });
 
   return await generateContributionExcel(contributions);
+};
+
+export const getMemberWorkbook = async () => {
+  const members = await prisma.member.findMany({
+    orderBy: {
+      fullName: "asc",
+    },
+  });
+
+  return await generateMemberExcel(members);
+};
+export const getExpenseWorkbook = async () => {
+  const expenses = await prisma.expense.findMany({
+    orderBy: {
+      expenseDate: "desc",
+    },
+  });
+
+  return await generateExpenseExcel(expenses);
 };
