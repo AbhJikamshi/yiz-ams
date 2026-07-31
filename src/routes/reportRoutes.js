@@ -10,7 +10,11 @@ router.get(
   authMiddleware,
   reportController.financialSummary
 );
-
+router.get(
+  "/summary/excel",
+  authMiddleware,
+  reportController.downloadFinancialSummaryExcel
+);
 // Contribution Report
 router.get(
   "/contributions",

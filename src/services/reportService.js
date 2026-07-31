@@ -2,6 +2,7 @@ import prisma from "../config/prisma.js";
 import { generateContributionExcel } from "../excel/contributionExcel.js";
 import { generateMemberExcel } from "../excel/memberExcel.js";
 import { generateExpenseExcel } from "../excel/expenseExcel.js";
+import { generateFinancialSummaryExcel } from "../excel/financialSummaryExcel.js";
 export const getFinancialSummary = async () => {
   const settings = await prisma.setting.findFirst();
 
@@ -183,4 +184,9 @@ export const getExpenseWorkbook = async () => {
   });
 
   return await generateExpenseExcel(expenses);
+};
+export const getFinancialSummaryWorkbook = async () => {
+  const summary = await getFinancialSummary();
+
+  return await generateFinancialSummaryExcel(summary);
 };

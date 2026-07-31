@@ -141,3 +141,25 @@ export const downloadExpenseExcel = async (req, res, next) => {
     next(error);
   }
 };
+export const downloadFinancialSummaryExcel = async (req, res, next) => {
+  try {
+    const workbook =
+      await reportService.getFinancialSummaryWorkbook();
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=FinancialSummary.xlsx"
+    );
+
+    await workbook.xlsx.write(res);
+
+    res.end();
+  } catch (error) {
+    next(error);
+  }
+};
