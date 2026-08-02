@@ -1,6 +1,6 @@
 import prisma from "../config/prisma.js";
 
-const DEFAULT_SETTINGS = {
+const DEFAULT_SETTINGS = Object.freeze({
   associationName: "Ya Isa Zama Association",
   monthlyContributionAmount: 500,
   currency: "NGN",
@@ -24,9 +24,12 @@ const DEFAULT_SETTINGS = {
   receiptPrefix: "RC",
   contributionPrefix: "CON",
   expensePrefix: "EXP",
-};
+});
 
-export const getSettings = async () => {
+// ===============================
+// Initialize Settings
+// ===============================
+export const initializeSettings = async () => {
   let settings = await prisma.setting.findFirst();
 
   if (!settings) {
@@ -38,16 +41,20 @@ export const getSettings = async () => {
   return settings;
 };
 
+// ===============================
+// Get Settings
+// ===============================
+export const getSettings = async () => {
+  return await initializeSettings();
+};
+
+// ===============================
+// Update Settings
+// ===============================
 export const updateSettings = async (data) => {
-  let settings = await prisma.setting.findFirst();
+  const settings = await initializeSettings();
 
-  if (!settings) {
-    settings = await prisma.setting.create({
-      data: DEFAULT_SETTINGS,
-    });
-  }
-
-  return prisma.setting.update({
+  return await prisma.setting.update({
     where: {
       id: settings.id,
     },

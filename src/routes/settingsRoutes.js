@@ -1,19 +1,22 @@
 import express from "express";
-import { get, update } from "../controllers/settingsController.js";
-import protect from "../middlewares/authMiddleware.js";
+
+import authMiddleware from "../middlewares/authMiddleware.js";
 import authorize from "../middlewares/authorize.js";
 import settingsValidation from "../middlewares/settingsValidation.js";
 
+import {
+  get,
+  update,
+} from "../controllers/settingsController.js";
+
 const router = express.Router();
 
-router.get("/", protect, authorize("ADMIN"), get);
+// Protect all settings routes
+router.use(authMiddleware);
+router.use(authorize("ADMIN"));
 
-router.put(
-  "/",
-  protect,
-  authorize("ADMIN"),
-  settingsValidation,
-  update
-);
+// Settings Routes
+router.get("/", get);
+router.patch("/", settingsValidation, update);
 
 export default router;

@@ -5,41 +5,80 @@ const settingsValidation = (req, res, next) => {
     currency,
     financialYearStart,
     financialYearEnd,
+    receiptPrefix,
+    contributionPrefix,
+    expensePrefix,
   } = req.body;
 
-  if (!associationName || associationName.trim() === "") {
+  if (
+    associationName !== undefined &&
+    associationName.trim() === ""
+  ) {
     return res.status(400).json({
       success: false,
-      message: "Association name is required.",
+      message: "Association name cannot be empty.",
     });
   }
 
   if (
     monthlyContributionAmount !== undefined &&
-    monthlyContributionAmount < 0
+    (typeof monthlyContributionAmount !== "number" ||
+      monthlyContributionAmount < 0)
   ) {
     return res.status(400).json({
       success: false,
-      message: "Monthly contribution amount cannot be negative.",
-    });
-  }
-
-  if (!currency || currency.trim() === "") {
-    return res.status(400).json({
-      success: false,
-      message: "Currency is required.",
+      message:
+        "Monthly contribution amount must be a positive number.",
     });
   }
 
   if (
-    financialYearStart &&
-    financialYearEnd &&
+    currency !== undefined &&
+    currency.trim() === ""
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: "Currency cannot be empty.",
+    });
+  }
+
+  if (
+    financialYearStart !== undefined &&
+    financialYearEnd !== undefined &&
     financialYearStart > financialYearEnd
   ) {
     return res.status(400).json({
       success: false,
-      message: "Financial year start cannot be greater than financial year end.",
+      message:
+        "Financial year start cannot be greater than financial year end.",
     });
+  }
+
+  const prefixes = [
+    {
+      value: receiptPrefix,
+      name: "Receipt prefix",
+    },
+    {
+      value: contributionPrefix,
+      name: "Contribution prefix",
+    },
+    {
+      value: expensePrefix,
+      name: "Expense prefix",
+    },
+  ];
+
+  for (const prefix of prefixes) {
+    if (
+      prefix.value !== undefined &&
+      prefix.value.trim() === ""
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: `${prefix.name} cannot be empty.`,
+      });
+    }
   }
 
   next();

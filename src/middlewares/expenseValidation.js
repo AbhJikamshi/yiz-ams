@@ -6,7 +6,12 @@ const validateExpense = (req, res, next) => {
     expenseDate,
   } = req.body;
 
-  if (!title || !category || amount === undefined || !expenseDate) {
+  if (
+    !title?.trim() ||
+    !category?.trim() ||
+    amount === undefined ||
+    !expenseDate
+  ) {
     return res.status(400).json({
       success: false,
       message:

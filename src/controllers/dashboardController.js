@@ -1,10 +1,13 @@
-import { getDashboardSummary } from "../services/dashboardService.js";
+import * as dashboardService from "../services/dashboardService.js";
 
+// ===============================
+// Dashboard Summary
+// ===============================
 export const getDashboard = async (req, res, next) => {
   try {
-    const dashboard = await getDashboardSummary();
+    const dashboard = await dashboardService.getDashboardSummary();
 
-    return res.status(200).json({
+    res.json({
       success: true,
       data: dashboard,
     });

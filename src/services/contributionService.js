@@ -1,29 +1,19 @@
 import prisma from "../config/prisma.js";
 
+// ==========================================
+// Create Contribution
+// ==========================================
 export const createContribution = async (data) => {
-  const existingContribution = await prisma.contribution.findFirst({
-    where: {
-      memberId: data.memberId,
-      monthNumber: data.monthNumber,
-      year: data.year,
-    },
-  });
-
-  if (existingContribution) {
-    const error = new Error(
-      `This member has already paid for month ${data.monthNumber}, ${data.year}.`
-    );
-    error.status = 409;
-    throw error;
-  }
-
   return await prisma.contribution.create({
     data: {
+      memberId: data.memberId,
       monthNumber: data.monthNumber,
       year: data.year,
       amount: data.amount,
-      status: data.status ?? "PAID",
-      memberId: data.memberId,
+      status: data.status,
+      paymentDate: data.paymentDate
+        ? new Date(data.paymentDate)
+        : new Date(),
     },
     include: {
       member: true,
@@ -31,48 +21,43 @@ export const createContribution = async (data) => {
   });
 };
 
+// ==========================================
+// Get All Contributions
+// ==========================================
 export const getContributions = async () => {
   return await prisma.contribution.findMany({
     include: {
       member: true,
     },
-    orderBy: [
-      {
-        year: "desc",
-      },
-      {
-        monthNumber: "desc",
-      },
-    ],
+    orderBy: {
+      paymentDate: "desc",
+    },
   });
 };
 
+// ==========================================
+// Get Contribution By ID
+// ==========================================
 export const getContributionById = async (id) => {
-  const contribution = await prisma.contribution.findUnique({
+  return await prisma.contribution.findUnique({
     where: {
-      id: Number(id),
+      id,
     },
     include: {
       member: true,
     },
   });
-
-  if (!contribution) {
-    const error = new Error("Contribution not found.");
-    error.status = 404;
-    throw error;
-  }
-
-  return contribution;
 };
 
-export const getContributionsByMember = async (memberId) => {
+// ==========================================
+// Get Contributions By Member
+// ==========================================
+export const getContributionsByMember = async (
+  memberId
+) => {
   return await prisma.contribution.findMany({
     where: {
-      memberId: Number(memberId),
-    },
-    include: {
-      member: true,
+      memberId,
     },
     orderBy: [
       {
@@ -85,17 +70,25 @@ export const getContributionsByMember = async (memberId) => {
   });
 };
 
-export const updateContribution = async (id, data) => {
+// ==========================================
+// Update Contribution
+// ==========================================
+export const updateContribution = async (
+  id,
+  data
+) => {
   return await prisma.contribution.update({
     where: {
-      id: Number(id),
+      id,
     },
     data: {
       monthNumber: data.monthNumber,
       year: data.year,
       amount: data.amount,
       status: data.status,
-      memberId: data.memberId,
+      paymentDate: data.paymentDate
+        ? new Date(data.paymentDate)
+        : undefined,
     },
     include: {
       member: true,
@@ -103,10 +96,13 @@ export const updateContribution = async (id, data) => {
   });
 };
 
+// ==========================================
+// Delete Contribution
+// ==========================================
 export const deleteContribution = async (id) => {
   return await prisma.contribution.delete({
     where: {
-      id: Number(id),
+      id,
     },
   });
 };

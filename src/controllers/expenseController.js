@@ -1,19 +1,13 @@
-import {
-  createExpense,
-  getExpenses,
-  getExpenseById,
-  updateExpense,
-  deleteExpense,
-} from "../services/expenseService.js";
+import * as expenseService from "../services/expenseService.js";
 
 // ===============================
 // Create Expense
 // ===============================
 export const create = async (req, res, next) => {
   try {
-    const expense = await createExpense(req.body);
+    const expense = await expenseService.createExpense(req.body);
 
-    return res.status(201).json({
+    res.status(201).json({
       success: true,
       message: "Expense recorded successfully.",
       data: expense,
@@ -28,9 +22,9 @@ export const create = async (req, res, next) => {
 // ===============================
 export const getAll = async (req, res, next) => {
   try {
-    const expenses = await getExpenses();
+    const expenses = await expenseService.getExpenses();
 
-    return res.status(200).json({
+    res.json({
       success: true,
       data: expenses,
     });
@@ -42,11 +36,13 @@ export const getAll = async (req, res, next) => {
 // ===============================
 // Get Expense By ID
 // ===============================
-export const getOne = async (req, res, next) => {
+export const getById = async (req, res, next) => {
   try {
-    const expense = await getExpenseById(req.params.id);
+    const expense = await expenseService.getExpenseById(
+      Number(req.params.id)
+    );
 
-    return res.status(200).json({
+    res.json({
       success: true,
       data: expense,
     });
@@ -60,9 +56,12 @@ export const getOne = async (req, res, next) => {
 // ===============================
 export const update = async (req, res, next) => {
   try {
-    const expense = await updateExpense(req.params.id, req.body);
+    const expense = await expenseService.updateExpense(
+      Number(req.params.id),
+      req.body
+    );
 
-    return res.status(200).json({
+    res.json({
       success: true,
       message: "Expense updated successfully.",
       data: expense,
@@ -77,9 +76,11 @@ export const update = async (req, res, next) => {
 // ===============================
 export const remove = async (req, res, next) => {
   try {
-    const result = await deleteExpense(req.params.id);
+    const result = await expenseService.deleteExpense(
+      Number(req.params.id)
+    );
 
-    return res.status(200).json({
+    res.json({
       success: true,
       message: result.message,
     });

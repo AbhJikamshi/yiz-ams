@@ -5,7 +5,12 @@ import prisma from "../config/prisma.js";
 // ===============================
 export const createExpense = async (data) => {
   return await prisma.expense.create({
-    data,
+    data: {
+      ...data,
+      expenseDate: data.expenseDate
+        ? new Date(data.expenseDate)
+        : undefined,
+    },
   });
 };
 
@@ -24,9 +29,11 @@ export const getExpenses = async () => {
 // Get Expense By ID
 // ===============================
 export const getExpenseById = async (id) => {
+  const expenseId = Number(id);
+
   const expense = await prisma.expense.findUnique({
     where: {
-      id: Number(id),
+      id: expenseId,
     },
   });
 
@@ -43,13 +50,20 @@ export const getExpenseById = async (id) => {
 // Update Expense
 // ===============================
 export const updateExpense = async (id, data) => {
-  await getExpenseById(id);
+  const expenseId = Number(id);
+
+  await getExpenseById(expenseId);
 
   return await prisma.expense.update({
     where: {
-      id: Number(id),
+      id: expenseId,
     },
-    data,
+    data: {
+      ...data,
+      expenseDate: data.expenseDate
+        ? new Date(data.expenseDate)
+        : undefined,
+    },
   });
 };
 
@@ -57,11 +71,13 @@ export const updateExpense = async (id, data) => {
 // Delete Expense
 // ===============================
 export const deleteExpense = async (id) => {
-  await getExpenseById(id);
+  const expenseId = Number(id);
+
+  await getExpenseById(expenseId);
 
   await prisma.expense.delete({
     where: {
-      id: Number(id),
+      id: expenseId,
     },
   });
 

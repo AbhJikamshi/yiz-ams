@@ -29,9 +29,10 @@ export const getAll = async (req, res, next) => {
 
 export const getById = async (req, res, next) => {
   try {
-    const contribution = await contributionService.getContributionById(
-      req.params.id
-    );
+   const contribution =
+  await contributionService.getContributionById(
+    Number(req.params.id)
+  );
 
     res.json({
       success: true,
@@ -45,9 +46,9 @@ export const getById = async (req, res, next) => {
 export const getByMember = async (req, res, next) => {
   try {
     const contributions =
-      await contributionService.getContributionsByMember(
-        req.params.memberId
-      );
+  await contributionService.getContributionsByMember(
+    Number(req.params.memberId)
+  );
 
     res.json({
       success: true,
@@ -61,10 +62,10 @@ export const getByMember = async (req, res, next) => {
 export const update = async (req, res, next) => {
   try {
     const contribution =
-      await contributionService.updateContribution(
-        req.params.id,
-        req.body
-      );
+  await contributionService.updateContribution(
+    Number(req.params.id),
+    req.body
+  );
 
     res.json({
       success: true,
@@ -78,7 +79,9 @@ export const update = async (req, res, next) => {
 
 export const remove = async (req, res, next) => {
   try {
-    await contributionService.deleteContribution(req.params.id);
+    await contributionService.deleteContribution(
+  Number(req.params.id)
+);
 
     res.json({
       success: true,

@@ -1,13 +1,13 @@
-import {
-  getSettings,
-  updateSettings,
-} from "../services/settingsService.js";
+import * as settingsService from "../services/settingsService.js";
 
+// ===============================
+// Get Settings
+// ===============================
 export const get = async (req, res, next) => {
   try {
-    const settings = await getSettings();
+    const settings = await settingsService.getSettings();
 
-    return res.status(200).json({
+    res.json({
       success: true,
       data: settings,
     });
@@ -16,11 +16,14 @@ export const get = async (req, res, next) => {
   }
 };
 
+// ===============================
+// Update Settings
+// ===============================
 export const update = async (req, res, next) => {
   try {
-    const settings = await updateSettings(req.body);
+    const settings = await settingsService.updateSettings(req.body);
 
-    return res.status(200).json({
+    res.json({
       success: true,
       message: "Settings updated successfully.",
       data: settings,

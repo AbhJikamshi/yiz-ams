@@ -15,19 +15,19 @@ import authorize from "../middlewares/authorize.js";
 
 const router = express.Router();
 
-// All contribution routes require authentication
+// All routes require login
 router.use(authMiddleware);
 
 // Get all contributions
 router.get("/", getAll);
 
-// Get contribution by ID
-router.get("/:id", getById);
-
-// Get contributions for a member
+// Get all contributions for one member
 router.get("/member/:memberId", getByMember);
 
-// Create contribution (Admin only)
+// Get one contribution
+router.get("/:id", getById);
+
+// Create contribution
 router.post(
   "/",
   authorize("ADMIN"),
@@ -35,7 +35,7 @@ router.post(
   create
 );
 
-// Update contribution (Admin only)
+// Update contribution
 router.put(
   "/:id",
   authorize("ADMIN"),
@@ -43,7 +43,7 @@ router.put(
   update
 );
 
-// Delete contribution (Admin only)
+// Delete contribution
 router.delete(
   "/:id",
   authorize("ADMIN"),

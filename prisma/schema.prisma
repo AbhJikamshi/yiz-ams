@@ -20,23 +20,23 @@ enum ContributionStatus {
 }
 
 model Admin {
-  id        Int      @id @default(autoincrement())
-  fullName  String
-  email     String   @unique
-  password  String
-  role      Role     @default(ADMIN)
+  id       Int    @id @default(autoincrement())
+  fullName String
+  email    String @unique
+  password String
+  role     Role   @default(ADMIN)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Member {
-  id        Int      @id @default(autoincrement())
-  fullName  String
-  phone     String?
-  email     String?  @unique
-  address   String?
-  status    String   @default("ACTIVE")
+  id       Int     @id @default(autoincrement())
+  fullName String
+  phone    String?
+  email    String? @unique
+  address  String?
+  status   String  @default("ACTIVE")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -45,19 +45,22 @@ model Member {
 }
 
 model Contribution {
-  id          Int                @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
   monthNumber Int
   year        Int
 
-  amount      Float
-  status      ContributionStatus @default(PAID)
+  amount Float
+  status ContributionStatus @default(PAID)
 
-  memberId    Int
-  member      Member             @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  paymentDate DateTime @default(now())
 
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
+  memberId Int
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([memberId, monthNumber, year])
   @@index([memberId])
@@ -65,7 +68,7 @@ model Contribution {
 }
 
 model Expense {
-  id          Int      @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
   title       String
   description String?
@@ -73,42 +76,42 @@ model Expense {
   amount      Float
   expenseDate DateTime
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([expenseDate])
 }
 
 model Setting {
-  id                        Int      @id @default(autoincrement())
+  id Int @id @default(autoincrement())
 
-  associationName           String
-  associationLogo           String?
+  associationName String
+  associationLogo String?
 
   monthlyContributionAmount Float
 
-  currency                  String   @default("NGN")
+  currency String @default("NGN")
 
-  financialYearStart        Int
-  financialYearEnd          Int
+  financialYearStart Int
+  financialYearEnd   Int
 
-  meetingDay                String?
-  meetingTime               String?
-  meetingVenue              String?
+  meetingDay   String?
+  meetingTime  String?
+  meetingVenue String?
 
-  chairmanName              String?
-  secretaryName             String?
-  treasurerName             String?
+  chairmanName  String?
+  secretaryName String?
+  treasurerName String?
 
-  phone                     String?
-  email                     String?
-  website                   String?
-  address                   String?
+  phone   String?
+  email   String?
+  website String?
+  address String?
 
-  receiptPrefix             String   @default("RC")
-  contributionPrefix        String   @default("CON")
-  expensePrefix             String   @default("EXP")
+  receiptPrefix      String @default("RC")
+  contributionPrefix String @default("CON")
+  expensePrefix      String @default("EXP")
 
-  createdAt                 DateTime @default(now())
-  updatedAt                 DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
