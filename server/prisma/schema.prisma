@@ -1,0 +1,202 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id               Int              @id @default(autoincrement())
+  fullName         String
+  phone            String?
+  email            String           @unique
+  password         String
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  role             Role             @default(ADMIN)
+  announcements    Announcement[]
+  notifications    Notification[]
+  reviewedPayments PaymentRequest[]
+}
+
+model Member {
+  id                     Int              @id @default(autoincrement())
+  fullName               String
+  phone                  String?
+  email                  String?          @unique
+  createdAt              DateTime         @default(now())
+  address                String?
+  status                 String           @default("ACTIVE")
+  updatedAt              DateTime         @updatedAt
+  password               String?
+  contributionStartDate  DateTime?
+
+  contributions          Contribution[]
+  notifications          Notification[]
+  paymentRequests        PaymentRequest[]
+
+  @@index([status])
+}
+model Contribution {
+  id          Int                @id @default(autoincrement())
+  year        Int
+  amount      Float
+  memberId    Int
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  monthNumber Int
+  paymentDate DateTime           @default(now())
+  status      ContributionStatus @default(PAID)
+  member      Member             @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([memberId, monthNumber, year])
+  @@index([memberId])
+  @@index([year, monthNumber])
+}
+
+model Expense {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  category    String
+  amount      Float
+  expenseDate DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([expenseDate])
+}
+
+model Setting {
+  id                        Int      @id @default(autoincrement())
+  associationName           String
+  associationLogo           String?
+
+  // Contribution configuration
+  monthlyContributionAmount Float
+  contributionStartMonth    Int      @default(12)
+  contributionStartYear     Int      @default(2024)
+
+  currency                  String   @default("NGN")
+
+  // Financial year configuration
+  financialYearStart        Int
+  financialYearEnd          Int
+
+  meetingDay                String?
+  meetingTime               String?
+  meetingVenue              String?
+
+  chairmanName              String?
+  secretaryName             String?
+  treasurerName             String?
+
+  phone                     String?
+  email                     String?
+  website                   String?
+  address                   String?
+
+  receiptPrefix             String   @default("RC")
+  contributionPrefix        String   @default("CON")
+  expensePrefix             String   @default("EXP")
+
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  accountName               String?
+  accountNumber             String?
+  bankName                  String?
+}
+
+model Announcement {
+  id          Int      @id @default(autoincrement())
+  title       String
+  message     String
+  createdById Int
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   Admin    @relation(fields: [createdById], references: [id])
+
+  @@index([createdById])
+}
+
+model Notification {
+  id          Int              @id @default(autoincrement())
+  title       String
+  message     String
+  type        NotificationType @default(GENERAL)
+  memberId    Int?
+  createdById Int
+  isRead      Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  createdBy   Admin            @relation(fields: [createdById], references: [id])
+  member      Member?          @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([memberId])
+  @@index([createdById])
+}
+
+model PaymentRequest {
+  id                   Int                   @id @default(autoincrement())
+  memberId             Int
+  amount               Float
+  bankName             String?
+  accountName          String?
+  accountNumber        String?
+  transactionReference String?
+  paymentDate          DateTime
+  proofImage           String?
+  status               PaymentRequestStatus  @default(PENDING)
+  remarks              String?
+  reviewedById         Int?
+  reviewedAt           DateTime?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  member               Member                @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  reviewedBy           Admin?                @relation(fields: [reviewedById], references: [id])
+  months               PaymentRequestMonth[]
+
+  @@index([memberId])
+  @@index([status])
+}
+
+model PaymentRequestMonth {
+  id               Int            @id @default(autoincrement())
+  paymentRequestId Int
+  year             Int
+  monthNumber      Int
+  amount           Float
+  paymentRequest   PaymentRequest @relation(fields: [paymentRequestId], references: [id], onDelete: Cascade)
+
+  @@unique([paymentRequestId, year, monthNumber])
+  @@index([year, monthNumber])
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+}
+
+enum ContributionStatus {
+  PAID
+  PENDING
+  PARTIAL
+  WAIVED
+}
+
+enum NotificationType {
+  GENERAL
+  MEETING
+  PAYMENT
+  REMINDER
+  ANNOUNCEMENT
+}
+
+enum PaymentRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}

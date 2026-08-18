@@ -1,0 +1,28 @@
+node_modules
+# Keep environment variables out of version control
+.env
+
+/src/generated/prisma
+node_modules/
+.env
+.agents/
+.claude/
+.windsurf/
+
+# Generated reports
+*.xlsx
+*.pdf
+
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+
+# Build output
+dist/
+coverage/
+
+# Logs
+*.log
+src/uploads/

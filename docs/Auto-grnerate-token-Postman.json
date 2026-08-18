@@ -1,0 +1,15 @@
+pm.test("Login Successful", function () {
+    pm.response.to.have.status(200);
+});
+
+const response = pm.response.json();
+
+if (response.success && response.token) {
+    pm.collectionVariables.set("token", response.token);
+
+    console.log("JWT Saved Successfully");
+
+    pm.test("JWT Token Saved", function () {
+        pm.expect(response.token).to.not.be.undefined;
+    });
+}

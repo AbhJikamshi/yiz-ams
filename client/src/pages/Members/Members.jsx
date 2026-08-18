@@ -186,28 +186,31 @@ const Members = () => {
   return (
     <DashboardLayout>
 
-      <div className="flex justify-between items-center mb-8">
+<div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
 
-        <div>
-          <h1 className="text-3xl font-bold">
-            Members Management
-          </h1>
+  <div className="min-w-0">
 
-          <p className="text-gray-500 mt-2">
-            Manage all registered association members.
-          </p>
-        </div>
+    <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
+      Members Management
+    </h1>
 
-        <button
-          onClick={handleAddMember}
-          className="bg-blue-600 text-white px-5 py-3 rounded-lg hover:bg-blue-700"
-        >
-          + Add Member
-        </button>
+    <p className="mt-2 text-sm text-gray-500 sm:text-base">
+      Manage all registered association members.
+    </p>
 
-      </div>
+  </div>
 
-      <div className="mb-6">
+  <button
+    type="button"
+    onClick={handleAddMember}
+    className="w-full rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 sm:w-auto sm:shrink-0"
+  >
+    + Add Member
+  </button>
+
+</div>
+
+  <div className="mb-6">
         <MemberSearch
           value={search}
           onChange={(e) =>

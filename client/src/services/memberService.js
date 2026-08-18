@@ -1,4 +1,4 @@
-import api from "../api/api";
+import api from "./api";
 
 export const getMembers = async () => {
   const { data } = await api.get("/members");

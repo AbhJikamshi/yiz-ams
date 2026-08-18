@@ -25,3 +25,14 @@ coverage/
 
 # Logs
 *.log
+# Local backups and recovery files
+.git-backup/
+.git-backup-safety/
+backup-schema.prisma
+schema-comparison.diff
+current-project-status.txt
+api-tests/
+
+
+client-current-safety/
+server-current-safety/

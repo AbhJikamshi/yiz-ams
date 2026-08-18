@@ -7,25 +7,37 @@ const MemberModal = ({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3 sm:p-4">
 
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold">
+      <div className="flex max-h-[95vh] w-full max-w-lg flex-col overflow-hidden rounded-xl bg-white shadow-xl">
+
+        {/* HEADER */}
+
+        <div className="flex shrink-0 items-center justify-between border-b border-gray-200 px-4 py-4 sm:px-6 sm:py-5">
+
+          <h2 className="min-w-0 pr-4 text-xl font-bold text-gray-900 sm:text-2xl">
             {title}
           </h2>
 
           <button
+            type="button"
             onClick={onClose}
-            className="text-gray-500 hover:text-red-600 text-xl"
+            className="shrink-0 rounded-lg p-2 text-xl leading-none text-gray-500 transition hover:bg-red-50 hover:text-red-600"
+            aria-label="Close modal"
           >
-            ✕
+            ×
           </button>
+
         </div>
 
-        {children}
+        {/* CONTENT */}
+
+        <div className="overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
+          {children}
+        </div>
 
       </div>
+
     </div>
   );
 };

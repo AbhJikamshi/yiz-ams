@@ -2,9 +2,10 @@ import {
   BellIcon,
   MagnifyingGlassIcon,
   MoonIcon,
+  Bars3Icon,
 } from "@heroicons/react/24/outline";
 
-const Header = () => {
+const Header = ({ onMenuClick }) => {
   const today = new Date().toLocaleDateString("en-NG", {
     weekday: "long",
     year: "numeric",
@@ -13,57 +14,110 @@ const Header = () => {
   });
 
   return (
-    <header className="bg-white shadow-sm border-b px-6 py-4 flex items-center justify-between">
+    <header className="sticky top-0 z-30 flex min-h-16 items-center justify-between border-b bg-white px-4 py-3 shadow-sm sm:px-5 md:px-6">
 
-      <div className="flex items-center gap-4">
+      {/* Left side */}
+      <div className="flex min-w-0 items-center gap-3">
 
-        <div className="relative">
+        {/* Mobile hamburger */}
+        <button
+          type="button"
+          onClick={onMenuClick}
+          className="
+            rounded-lg p-2
+            text-slate-600
+            hover:bg-slate-100
+            hover:text-slate-900
+            md:hidden
+          "
+          aria-label="Open menu"
+        >
+          <Bars3Icon className="h-7 w-7" />
+        </button>
 
-          <MagnifyingGlassIcon className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+        {/* Search */}
+        <div className="relative hidden sm:block">
+
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
 
           <input
             type="text"
             placeholder="Search..."
-            className="pl-10 pr-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 w-80"
+            className="
+              w-56 rounded-lg border
+              py-2.5 pl-10 pr-4
+              text-sm
+              outline-none
+              transition
+              focus:border-blue-500
+              focus:ring-2
+              focus:ring-blue-500/20
+              md:w-72
+              lg:w-80
+            "
           />
 
         </div>
 
       </div>
 
-      <div className="flex items-center gap-6">
+      {/* Right side */}
+      <div className="flex shrink-0 items-center gap-2 sm:gap-4 md:gap-6">
 
-        <span className="text-gray-500 text-sm">
+        {/* Date - hidden on small screens */}
+        <span className="hidden text-sm text-slate-500 lg:block">
           {today}
         </span>
 
-        <button className="relative">
+        {/* Notifications */}
+        <button
+          type="button"
+          className="
+            relative rounded-lg p-2
+            text-slate-600
+            hover:bg-slate-100
+          "
+          aria-label="Notifications"
+        >
+          <BellIcon className="h-6 w-6" />
 
-          <BellIcon className="h-6 w-6 text-gray-600" />
-
-          <span className="absolute -top-1 -right-1 bg-red-500 rounded-full h-2 w-2"></span>
-
+          <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-red-500" />
         </button>
 
-        <button>
-
-          <MoonIcon className="h-6 w-6 text-gray-600" />
-
+        {/* Dark mode */}
+        <button
+          type="button"
+          className="
+            hidden rounded-lg p-2
+            text-slate-600
+            hover:bg-slate-100
+            sm:block
+          "
+          aria-label="Toggle dark mode"
+        >
+          <MoonIcon className="h-6 w-6" />
         </button>
 
-        <div className="flex items-center gap-3">
+        {/* Administrator */}
+        <div className="flex items-center gap-2 sm:gap-3">
 
-          <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
+          <div className="
+            flex h-10 w-10
+            shrink-0 items-center justify-center
+            rounded-full bg-blue-600
+            text-sm font-bold text-white
+            sm:h-11 sm:w-11
+          ">
             A
           </div>
 
-          <div>
+          <div className="hidden sm:block">
 
-            <h4 className="font-semibold">
+            <h4 className="text-sm font-semibold text-slate-900">
               Administrator
             </h4>
 
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-slate-500">
               System Admin
             </p>
 
