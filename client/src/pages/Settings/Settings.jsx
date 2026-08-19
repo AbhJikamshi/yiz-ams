@@ -194,7 +194,7 @@ const Settings = () => {
     }
   };
 
-  const getLogoUrl = () => {
+    const getLogoUrl = () => {
     if (!settings?.associationLogo) {
       return null;
     }
@@ -206,23 +206,11 @@ const Settings = () => {
       return settings.associationLogo;
     }
 
-    const getLogoUrl = () => {
-  if (!settings?.associationLogo) {
-    return null;
-  }
+    const API_BASE =
+      import.meta.env.VITE_API_URL?.replace(/\/api$/, "") ||
+      "http://localhost:5000";
 
-  if (
-    settings.associationLogo.startsWith("http://") ||
-    settings.associationLogo.startsWith("https://")
-  ) {
-    return settings.associationLogo;
-  }
-
-  const API_BASE =
-    import.meta.env.VITE_API_URL?.replace(/\/api$/, "") ||
-    "http://localhost:5000";
-
-  return `${API_BASE}${settings.associationLogo}`;
+    return `${API_BASE}${settings.associationLogo}`;
   };
 
   // =========================================================
