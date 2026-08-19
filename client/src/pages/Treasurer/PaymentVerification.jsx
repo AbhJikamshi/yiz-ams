@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../../services/api";
 
-const API_BASE = "http://localhost:5000";
+const API_BASE =
+  import.meta.env.VITE_API_URL?.replace(/\/api$/, "") ||
+  "http://localhost:5000";
 const NGN = "₦";
 
 const MONTH_NAMES = [

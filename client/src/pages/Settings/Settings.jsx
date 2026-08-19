@@ -206,7 +206,23 @@ const Settings = () => {
       return settings.associationLogo;
     }
 
-    return `http://localhost:5000${settings.associationLogo}`;
+    const getLogoUrl = () => {
+  if (!settings?.associationLogo) {
+    return null;
+  }
+
+  if (
+    settings.associationLogo.startsWith("http://") ||
+    settings.associationLogo.startsWith("https://")
+  ) {
+    return settings.associationLogo;
+  }
+
+  const API_BASE =
+    import.meta.env.VITE_API_URL?.replace(/\/api$/, "") ||
+    "http://localhost:5000";
+
+  return `${API_BASE}${settings.associationLogo}`;
   };
 
   // =========================================================
