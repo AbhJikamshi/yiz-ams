@@ -36,3 +36,6 @@ api-tests/
 
 client-current-safety/
 server-current-safety/
+
+# Production database backups
+backups/
