@@ -14,7 +14,24 @@ const authMiddleware = async (req, res, next) => {
 
     const token = authHeader.split(" ")[1];
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET
+    );
+
+    // ========================================
+    // ADMIN AUTHENTICATION ONLY
+    // ========================================
+    //
+    // A valid MEMBER token is authenticated,
+    // but it must not access ADMIN routes.
+    //
+    if (decoded.role !== "ADMIN") {
+      return res.status(403).json({
+        success: false,
+        message: "Admin access only.",
+      });
+    }
 
     const admin = await prisma.admin.findUnique({
       where: {
