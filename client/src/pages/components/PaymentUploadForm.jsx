@@ -36,6 +36,10 @@ export default function PaymentUploadForm({
     message: "",
   });
 
+  // =====================================================
+  // SYNC AMOUNT WITH ADMIN SETTINGS
+  // =====================================================
+
   useEffect(() => {
     if (settings?.monthlyContributionAmount != null) {
       setForm((previous) => ({
@@ -62,6 +66,10 @@ export default function PaymentUploadForm({
     "December",
   ];
 
+  // =====================================================
+  // NOTIFICATION
+  // =====================================================
+
   const showNotification = (type, message) => {
     setNotification({
       type,
@@ -76,12 +84,19 @@ export default function PaymentUploadForm({
     }, 5000);
   };
 
+  // =====================================================
+  // ADD MONTH
+  // =====================================================
+
   const addMonth = () => {
     const lastMonth =
       form.months[form.months.length - 1];
 
-    let nextMonth = Number(lastMonth.monthNumber) + 1;
-    let nextYear = Number(lastMonth.year);
+    let nextMonth =
+      Number(lastMonth.monthNumber) + 1;
+
+    let nextYear =
+      Number(lastMonth.year);
 
     if (nextMonth > 12) {
       nextMonth = 1;
@@ -113,9 +128,15 @@ export default function PaymentUploadForm({
       ],
       amount:
         (previous.months.length + 1) *
-        Number(settings?.monthlyContributionAmount || 0),
+        Number(
+          settings?.monthlyContributionAmount || 0
+        ),
     }));
   };
+
+  // =====================================================
+  // REMOVE MONTH
+  // =====================================================
 
   const removeMonth = (index) => {
     if (form.months.length === 1) {
@@ -127,23 +148,37 @@ export default function PaymentUploadForm({
     }
 
     setForm((previous) => {
-      const updatedMonths = previous.months.filter(
-        (_, monthIndex) => monthIndex !== index
-      );
+      const updatedMonths =
+        previous.months.filter(
+          (_, monthIndex) =>
+            monthIndex !== index
+        );
 
       return {
         ...previous,
         months: updatedMonths,
         amount:
           updatedMonths.length *
-          Number(settings?.monthlyContributionAmount || 0),
+          Number(
+            settings?.monthlyContributionAmount || 0
+          ),
       };
     });
   };
 
-  const handleMonthChange = (index, field, value) => {
+  // =====================================================
+  // MONTH / YEAR CHANGE
+  // =====================================================
+
+  const handleMonthChange = (
+    index,
+    field,
+    value
+  ) => {
     setForm((previous) => {
-      const updatedMonths = [...previous.months];
+      const updatedMonths = [
+        ...previous.months,
+      ];
 
       updatedMonths[index] = {
         ...updatedMonths[index],
@@ -157,6 +192,10 @@ export default function PaymentUploadForm({
     });
   };
 
+  // =====================================================
+  // GENERAL INPUT CHANGE
+  // =====================================================
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -166,8 +205,13 @@ export default function PaymentUploadForm({
     }));
   };
 
+  // =====================================================
+  // FILE UPLOAD
+  // =====================================================
+
   const handleFile = (e) => {
-    const selectedFile = e.target.files?.[0];
+    const selectedFile =
+      e.target.files?.[0];
 
     if (!selectedFile) {
       setFile(null);
@@ -181,7 +225,11 @@ export default function PaymentUploadForm({
       "application/pdf",
     ];
 
-    if (!allowedTypes.includes(selectedFile.type)) {
+    if (
+      !allowedTypes.includes(
+        selectedFile.type
+      )
+    ) {
       showNotification(
         "error",
         "Only JPG, JPEG, PNG and PDF files are allowed."
@@ -192,7 +240,10 @@ export default function PaymentUploadForm({
       return;
     }
 
-    if (selectedFile.size > 5 * 1024 * 1024) {
+    if (
+      selectedFile.size >
+      5 * 1024 * 1024
+    ) {
       showNotification(
         "error",
         "Payment proof must not exceed 5MB."
@@ -206,6 +257,10 @@ export default function PaymentUploadForm({
     setFile(selectedFile);
   };
 
+  // =====================================================
+  // SUBMIT
+  // =====================================================
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -217,7 +272,9 @@ export default function PaymentUploadForm({
       return;
     }
 
-    if (!form.transactionReference.trim()) {
+    if (
+      !form.transactionReference.trim()
+    ) {
       showNotification(
         "warning",
         "Please enter your transaction reference."
@@ -245,12 +302,15 @@ export default function PaymentUploadForm({
       setForm({
         months: [
           {
-            monthNumber: currentDate.getMonth() + 1,
-            year: currentDate.getFullYear(),
+            monthNumber:
+              currentDate.getMonth() + 1,
+            year:
+              currentDate.getFullYear(),
           },
         ],
         amount: Number(
-          settings?.monthlyContributionAmount || 0
+          settings?.monthlyContributionAmount ||
+            0
         ),
         transactionReference: "",
         paymentDate: new Date()
@@ -261,7 +321,9 @@ export default function PaymentUploadForm({
       setFile(null);
 
       const fileInput =
-        document.getElementById("payment-proof");
+        document.getElementById(
+          "payment-proof"
+        );
 
       if (fileInput) {
         fileInput.value = "";
@@ -289,18 +351,18 @@ export default function PaymentUploadForm({
 
   return (
     <>
-      {/* ============================
+      {/* =====================================================
           NOTIFICATION
-      ============================ */}
+      ===================================================== */}
 
       {notification.message && (
         <div
           className={`fixed right-5 top-5 z-[500] flex w-[min(420px,calc(100vw-40px))] items-start gap-3 rounded-2xl border p-4 shadow-2xl ${
             notification.type === "success"
-              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+              ? "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200"
               : notification.type === "error"
-              ? "border-red-200 bg-red-50 text-red-800"
-              : "border-amber-200 bg-amber-50 text-amber-800"
+              ? "border-red-200 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-200"
+              : "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200"
           }`}
         >
           <div
@@ -314,8 +376,6 @@ export default function PaymentUploadForm({
           >
             {notification.type === "success"
               ? "✓"
-              : notification.type === "error"
-              ? "!"
               : "!"}
           </div>
 
@@ -348,36 +408,39 @@ export default function PaymentUploadForm({
         </div>
       )}
 
+      {/* =====================================================
+          FORM
+      ===================================================== */}
+
       <form
         onSubmit={handleSubmit}
-        className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+        className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900"
       >
-
         {/* HEADER */}
 
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
             Submit Contribution
           </h2>
 
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Select one or more contribution months and
             submit one payment proof.
           </p>
         </div>
 
-        {/* MONTHS */}
+        {/* =====================================================
+            MONTHS
+        ===================================================== */}
 
         <div>
-
           <div className="mb-3 flex items-center justify-between">
-
             <div>
-              <label className="font-semibold text-slate-800">
+              <label className="font-semibold text-slate-800 dark:text-slate-200">
                 Contribution Months
               </label>
 
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 One payment proof can cover all selected months.
               </p>
             </div>
@@ -386,245 +449,262 @@ export default function PaymentUploadForm({
               type="button"
               onClick={addMonth}
               disabled={loading}
-              className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100 disabled:opacity-50"
+              className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300 dark:hover:bg-blue-900/50 disabled:opacity-50"
             >
               + Add Month
             </button>
-
           </div>
 
           <div className="space-y-3">
+            {form.months.map(
+              (month, index) => (
+                <div
+                  key={index}
+                  className="grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800 sm:grid-cols-[minmax(0,1fr)_8rem_8rem_auto] sm:items-end"
+                >
+                  {/* MONTH */}
 
-            {form.months.map((month, index) => (
-              <div
-                key={index}
-               className="grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:grid-cols-[minmax(0,1fr)_8rem_8rem_auto] sm:items-end"
-             >
+                  <div className="min-w-0 lg:flex-1">
+                    <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                      Month
+                    </label>
 
-                <div className="min-w-0 lg:flex-1">
-
-                  <label className="text-xs font-semibold text-slate-500">
-                    Month
-                  </label>
-
-                  <select
-                    value={month.monthNumber}
-                    onChange={(e) =>
-                      handleMonthChange(
-                        index,
-                        "monthNumber",
-                        e.target.value
-                      )
-                    }
-                    disabled={loading}
-                    className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                  >
-                    {months.map((monthName, monthIndex) => (
-                      <option
-                        key={monthIndex}
-                        value={monthIndex + 1}
-                      >
-                        {monthName}
-                      </option>
-                    ))}
-                  </select>
-
-                </div>
-
-                <div className="w-full lg:w-32">
-
-                  <label className="text-xs font-semibold text-slate-500">
-                    Year
-                  </label>
-
-                  <input
-                    type="number"
-                    value={month.year}
-                    onChange={(e) =>
-                      handleMonthChange(
-                        index,
-                        "year",
-                        e.target.value
-                      )
-                    }
-                    disabled={loading}
-                    className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                  />
-
-                </div>
-
-                <div className="w-full lg:w-32">
-
-                  <label className="text-xs font-semibold text-slate-500">
-                    Amount
-                  </label>
-
-                  <div className="mt-1 rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700">
-                    {formatCurrency(
-                      settings?.monthlyContributionAmount
-                    )}
+                    <select
+                      value={month.monthNumber}
+                      onChange={(e) =>
+                        handleMonthChange(
+                          index,
+                          "monthNumber",
+                          e.target.value
+                        )
+                      }
+                      disabled={loading}
+                      className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:bg-slate-900 dark:text-white dark:scheme-dark"
+                    >
+                      {months.map(
+                        (
+                          monthName,
+                          monthIndex
+                        ) => (
+                          <option
+                            key={monthIndex}
+                            value={
+                              monthIndex + 1
+                            }
+                          >
+                            {monthName}
+                          </option>
+                        )
+                      )}
+                    </select>
                   </div>
 
+                  {/* YEAR */}
+
+                  <div className="w-full lg:w-32">
+                    <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                      Year
+                    </label>
+
+                    <input
+                      type="number"
+                      value={month.year}
+                      onChange={(e) =>
+                        handleMonthChange(
+                          index,
+                          "year",
+                          e.target.value
+                        )
+                      }
+                      disabled={loading}
+                      className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:bg-slate-900 dark:text-white"
+                    />
+                  </div>
+
+                  {/* AMOUNT */}
+
+                  <div className="w-full lg:w-32">
+                    <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                      Amount
+                    </label>
+
+                    <div className="mt-1 rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100">
+                      {formatCurrency(
+                        settings?.monthlyContributionAmount
+                      )}
+                    </div>
+                  </div>
+
+                  {/* REMOVE */}
+
+                  {form.months.length >
+                    1 && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        removeMonth(index)
+                      }
+                      disabled={loading}
+                      className="w-full rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300 dark:hover:bg-red-900/50 sm:col-span-2 lg:w-auto lg:shrink-0"
+                    >
+                      Remove
+                    </button>
+                  )}
                 </div>
-
-                {form.months.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeMonth(index)}
-                    disabled={loading}
-                    className="w-full rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 sm:col-span-2 lg:w-auto lg:shrink-0"
-                  >
-                    Remove
-                  </button>
-                )}
-
-              </div>
-            ))}
-
+              )
+            )}
           </div>
-
         </div>
 
-        {/* TOTAL */}
+        {/* =====================================================
+            TOTAL
+        ===================================================== */}
 
-        <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
-
+        <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-900/60 dark:bg-blue-950/40">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-
             <div>
-              <p className="text-sm font-semibold text-blue-800">
+              <p className="text-sm font-semibold text-blue-800 dark:text-blue-200">
                 Total Contribution
               </p>
 
-              <p className="text-xs text-blue-600">
+              <p className="text-xs text-blue-600 dark:text-blue-300">
                 {form.months.length} contribution month
-                {form.months.length !== 1 ? "s" : ""} selected
+                {form.months.length !== 1
+                  ? "s"
+                  : ""}{" "}
+                selected
               </p>
             </div>
 
-            <p className="text-2xl font-bold text-blue-700 sm:text-2x1">
-              {formatCurrency(form.amount)}
+            <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+              {formatCurrency(
+                form.amount
+              )}
             </p>
-
           </div>
-
         </div>
 
-        {/* BANK DETAILS */}
+        {/* =====================================================
+            BANK DETAILS
+        ===================================================== */}
 
-        <div className="rounded-xl border border-blue-100 bg-blue-50 p-5">
-
-          <h3 className="font-bold text-slate-900">
+        <div className="rounded-xl border border-blue-100 bg-blue-50 p-5 dark:border-blue-900/60 dark:bg-blue-950/40">
+          <h3 className="font-bold text-slate-900 dark:text-white">
             Association Bank Details
           </h3>
 
-          <div className="mt-3 grid gap-3 text-sm text-slate-700 sm:grid-cols-2 lg:grid-cols-3">
-
+          <div className="mt-3 grid gap-3 text-sm text-slate-700 dark:text-slate-200 sm:grid-cols-2 lg:grid-cols-3">
             <p>
               <strong>Bank:</strong>{" "}
-              {settings?.bankName || "Not configured"}
+              {settings?.bankName ||
+                "Not configured"}
             </p>
 
             <p>
-              <strong>Account Name:</strong>{" "}
+              <strong>
+                Account Name:
+              </strong>{" "}
               {settings?.accountName ||
                 settings?.associationName ||
                 "Not configured"}
             </p>
 
             <p>
-              <strong>Account Number:</strong>{" "}
+              <strong>
+                Account Number:
+              </strong>{" "}
               {settings?.accountNumber ||
                 "Not configured"}
             </p>
-
           </div>
-
         </div>
 
-        {/* TRANSACTION REFERENCE + PAYMENT DATE */}
+        {/* =====================================================
+            TRANSACTION REFERENCE + PAYMENT DATE
+        ===================================================== */}
 
-<div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid gap-5 sm:grid-cols-2">
+          {/* TRANSACTION REFERENCE */}
 
-  {/* TRANSACTION REFERENCE */}
+          <div>
+            <label className="font-semibold text-slate-800 dark:text-slate-200">
+              Transaction Reference
+            </label>
 
-  <div>
+            <input
+              type="text"
+              name="transactionReference"
+              value={
+                form.transactionReference
+              }
+              onChange={handleChange}
+              disabled={loading}
+              className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500"
+              placeholder="Enter transaction reference"
+              required
+            />
+          </div>
 
-    <label className="font-semibold text-slate-800">
-      Transaction Reference
-    </label>
+          {/* PAYMENT DATE */}
 
-    <input
-      type="text"
-      name="transactionReference"
-      value={form.transactionReference}
-      onChange={handleChange}
-      disabled={loading}
-      className="mt-1 w-full rounded-lg border border-slate-300 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-      placeholder="Enter transaction reference"
-      required
-    />
+          <div>
+            <label className="font-semibold text-slate-800 dark:text-slate-200">
+              Payment Date
+            </label>
 
-  </div>
+            <input
+              type="date"
+              name="paymentDate"
+              value={form.paymentDate}
+              onChange={handleChange}
+              disabled={loading}
+              className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:scheme-dark"
+              required
+            />
+          </div>
+        </div>
 
-  {/* PAYMENT DATE */}
-
-  <div>
-
-    <label className="font-semibold text-slate-800">
-      Payment Date
-    </label>
-
-    <input
-      type="date"
-      name="paymentDate"
-      value={form.paymentDate}
-      onChange={handleChange}
-      disabled={loading}
-      className="mt-1 w-full rounded-lg border border-slate-300 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-      required
-    />
-
-  </div>
-
-</div>
-
-        {/* PAYMENT PROOF */}
+        {/* =====================================================
+            PAYMENT PROOF
+        ===================================================== */}
 
         <div>
-
-          <label className="font-semibold text-slate-800">
+          <label className="font-semibold text-slate-800 dark:text-slate-200">
             Payment Proof
           </label>
 
           <label
             htmlFor="payment-proof"
-            className="mt-2 flex min-h-[165px] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-emerald-300 bg-emerald-50 px-4 py-8 text-center transition hover:bg-emerald-100 sm:px-6">
-
+            className="mt-2 flex min-h-[165px] cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-emerald-300 bg-emerald-50 px-4 py-8 text-center transition hover:bg-emerald-100 dark:border-emerald-700 dark:bg-emerald-950/30 dark:hover:bg-emerald-950/50 sm:px-6"
+          >
             <div className="text-3xl">
               📄
             </div>
 
-            <p className="mt-2 text-sm font-semibold text-slate-800">
+            <p className="mt-2 text-sm font-semibold text-slate-800 dark:text-slate-200">
               Click to upload payment proof
             </p>
 
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
               JPG, JPEG, PNG or PDF · Maximum 5MB
             </p>
 
             {file && (
-  <div className="mt-3 max-w-full rounded-lg bg-white px-3 py-2 text-left shadow-sm">
-    <p className="break-all text-xs font-semibold text-emerald-700">
-      ✓ {file.name}
-    </p>
+              <div className="mt-3 max-w-full rounded-lg bg-white px-3 py-2 text-left shadow-sm dark:bg-slate-800">
+                <p className="break-all text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                  ✓ {file.name}
+                </p>
 
-    <p className="mt-1 text-[11px] text-slate-500">
-      {(file.size / 1024 / 1024).toFixed(2)} MB
-    </p>
-  </div>
-)}
-
+                <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                  {(
+                    file.size /
+                    1024 /
+                    1024
+                  ).toFixed(2)}{" "}
+                  MB
+                </p>
+              </div>
+            )}
           </label>
 
           <input
@@ -636,10 +716,11 @@ export default function PaymentUploadForm({
             className="hidden"
             required
           />
-
         </div>
 
-        {/* PROGRESS */}
+        {/* =====================================================
+            PROGRESS
+        ===================================================== */}
 
         <UploadProgress
           loading={loading}
@@ -647,7 +728,9 @@ export default function PaymentUploadForm({
           message="Submitting payment..."
         />
 
-        {/* SUBMIT */}
+        {/* =====================================================
+            SUBMIT
+        ===================================================== */}
 
         <button
           type="submit"
@@ -656,14 +739,15 @@ export default function PaymentUploadForm({
         >
           {loading
             ? "Submitting Payment..."
-            : `Submit Payment · ${formatCurrency(form.amount)}`}
+            : `Submit Payment · ${formatCurrency(
+                form.amount
+              )}`}
         </button>
 
-        <p className="text-center text-xs text-slate-500">
+        <p className="text-center text-xs text-slate-500 dark:text-slate-400">
           One payment proof can cover all selected
           contribution months.
         </p>
-
       </form>
     </>
   );

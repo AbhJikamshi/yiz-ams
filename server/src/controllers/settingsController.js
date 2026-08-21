@@ -17,6 +17,22 @@ export const get = async (req, res, next) => {
 };
 
 // ===============================
+// Get Member Settings
+// ===============================
+export const getMemberSettings = async (req, res, next) => {
+  try {
+    const settings =
+      await settingsService.getMemberSettings();
+
+    res.json({
+      success: true,
+      data: settings,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+// ===============================
 // Update Settings
 // ===============================
 export const update = async (req, res, next) => {

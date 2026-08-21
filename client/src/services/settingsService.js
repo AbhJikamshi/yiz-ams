@@ -10,6 +10,13 @@ const settingsService = {
   },
 
   // ===============================
+  // Get Member Settings
+  // ===============================
+getMemberSettings: async () => {
+  const response = await api.get("/settings/member");
+  return response.data;
+},
+  // ===============================
   // Update Settings
   // ===============================
   updateSettings: async (data) => {

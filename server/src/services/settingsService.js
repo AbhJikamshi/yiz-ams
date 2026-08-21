@@ -132,6 +132,24 @@ export const getSettings = async () => {
 };
 
 // ======================================================
+// GET MEMBER SETTINGS
+// ======================================================
+export const getMemberSettings = async () => {
+  const settings = await initializeSettings();
+
+  return {
+    associationName: settings.associationName,
+    associationLogo: settings.associationLogo,
+    monthlyContributionAmount:
+      Number(settings.monthlyContributionAmount) || 0,
+    currency: settings.currency || "NGN",
+
+    bankName: settings.bankName,
+    accountName: settings.accountName,
+    accountNumber: settings.accountNumber,
+  };
+};
+// ======================================================
 // UPDATE SETTINGS
 // ======================================================
 export const updateSettings = async (data) => {

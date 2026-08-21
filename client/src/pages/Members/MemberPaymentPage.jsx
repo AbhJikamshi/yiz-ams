@@ -27,22 +27,37 @@ export default function MemberPaymentPage() {
       const [paymentResponse, settingsResponse] =
         await Promise.all([
           getMyPaymentRequests(),
-          settingsService.getSettings(),
+          settingsService.getMemberSettings(),
         ]);
 
-      setRequests(paymentResponse?.data ?? paymentResponse ?? []);
-      setSettings(settingsResponse?.data ?? settingsResponse ?? null);
+      setRequests(
+        paymentResponse?.data ?? paymentResponse ?? []
+      );
+
+      setSettings(
+        settingsResponse?.data ??
+          settingsResponse ??
+          null
+      );
     } catch (error) {
-      console.error("Member Payment Page Error:", error);
+      console.error(
+        "Member Payment Page Error:",
+        error
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSubmit = async (form, file, setProgress) => {
+  const handleSubmit = async (
+    form,
+    file,
+    setProgress
+  ) => {
     setProgress(20);
 
-    const paymentResponse = await submitPaymentRequest(form);
+    const paymentResponse =
+      await submitPaymentRequest(form);
 
     const payment =
       paymentResponse?.data ?? paymentResponse;
@@ -55,7 +70,10 @@ export default function MemberPaymentPage() {
       );
     }
 
-    await uploadPaymentProof(payment.id, file);
+    await uploadPaymentProof(
+      payment.id,
+      file
+    );
 
     setProgress(100);
 
@@ -64,8 +82,8 @@ export default function MemberPaymentPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-gray-500">
+      <div className="flex min-h-[400px] items-center justify-center bg-slate-50 dark:bg-slate-950">
+        <p className="text-gray-500 dark:text-gray-400">
           Loading payment page...
         </p>
       </div>
@@ -73,26 +91,30 @@ export default function MemberPaymentPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto pb-10min-h-screen bg-slate-50 p-4 pb-28 pt-20 sm:p-6 sm:pb-28 sm:pt-20 lg:p-8 lg:pb-28 lg:pt-8">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">
-          Monthly Contribution
-        </h1>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 pb-28 pt-20 sm:p-6 sm:pb-28 sm:pt-20 lg:p-8 lg:pb-28 lg:pt-8">
+      <div className="mx-auto max-w-4xl">
 
-        <p className="text-gray-500 mt-1">
-          Submit your monthly contribution and payment proof.
-        </p>
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+            Monthly Contribution
+          </h1>
+
+          <p className="mt-1 text-gray-500 dark:text-gray-400">
+            Submit your monthly contribution and payment proof.
+          </p>
+        </div>
+
+        <PaymentUploadForm
+          settings={settings}
+          existingRequests={requests}
+          onSubmit={handleSubmit}
+        />
+
+        <PaymentRequestHistory
+          requests={requests}
+        />
+
       </div>
-
-      <PaymentUploadForm
-      settings={settings}
-      existingRequests={requests}
-      onSubmit={handleSubmit}
-      />
-
-      <PaymentRequestHistory
-        requests={requests}
-      />
     </div>
   );
 }
