@@ -129,11 +129,9 @@ export default function MemberProfile() {
   // ====================================================
 
   const handleLogout = () => {
-    logout();
+  logout();
 
-    navigate("/member/login", {
-      replace: true,
-    });
+  window.location.replace("/");
   };
   // ====================================================
   // LOADING / SAVING STATES

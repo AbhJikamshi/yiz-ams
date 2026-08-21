@@ -9,6 +9,7 @@ import "./index.css";
 
 import { AuthProvider } from "./contexts/AuthContext";
 import { MemberAuthProvider } from "./contexts/MemberAuthContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
 
 const queryClient = new QueryClient();
 
@@ -16,11 +17,13 @@ createRoot(document.getElementById("root")).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <AuthProvider>
-          <MemberAuthProvider>
-            <App />
-          </MemberAuthProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <MemberAuthProvider>
+              <App />
+            </MemberAuthProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </BrowserRouter>
     </QueryClientProvider>
   </StrictMode>

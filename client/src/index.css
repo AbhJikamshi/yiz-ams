@@ -1,1 +1,137 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* =========================================================
+   YIZ-AMS GLOBAL THEME
+========================================================= */
+
+:root {
+  color-scheme: light;
+
+  --app-bg: #f1f5f9;
+  --surface: #ffffff;
+  --surface-secondary: #f8fafc;
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+
+  --border: #e2e8f0;
+  --border-light: #f1f5f9;
+
+  --accent: #2563eb;
+  --accent-bg: #eff6ff;
+  --accent-border: #93c5fd;
+
+  --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+
+  --social-bg: #f8fafc;
+  --text-h: #0f172a;
+}
+
+.dark {
+  color-scheme: dark;
+
+  --app-bg: #0f172a;
+  --surface: #1e293b;
+  --surface-secondary: #172033;
+
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+
+  --border: #334155;
+  --border-light: #273449;
+
+  --accent: #60a5fa;
+  --accent-bg: #172554;
+  --accent-border: #3b82f6;
+
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+
+  --social-bg: #1e293b;
+  --text-h: #f8fafc;
+}
+
+/* =========================================================
+   GLOBAL BODY
+========================================================= */
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+html {
+  background: var(--app-bg);
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
+}
+
+body {
+  margin: 0;
+  background: var(--app-bg);
+  color: var(--text-primary);
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
+}
+
+/* =========================================================
+   SMOOTH THEME TRANSITION
+========================================================= */
+
+body,
+button,
+input,
+textarea,
+select,
+section,
+header,
+aside,
+main,
+nav {
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+/* =========================================================
+   FORM CONTROLS
+========================================================= */
+
+.dark input,
+.dark textarea,
+.dark select {
+  color-scheme: dark;
+}
+
+/* =========================================================
+   SCROLLBAR
+========================================================= */
+
+.dark {
+  scrollbar-color: #475569 #0f172a;
+}
+
+.dark ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 999px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}

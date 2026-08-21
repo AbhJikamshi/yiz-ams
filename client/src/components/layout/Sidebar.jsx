@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import {
   HomeIcon,
   UsersIcon,
@@ -16,9 +16,9 @@ import { useAuth } from "../../contexts/AuthContext";
 
 const menu = [
   {
-    name: "Dashboard",
-    path: "/",
-    icon: HomeIcon,
+  name: "Dashboard",
+  path: "/dashboard",
+  icon: HomeIcon,
   },
   {
     name: "Members",
@@ -58,17 +58,14 @@ const menu = [
 ];
 
 const Sidebar = ({ isOpen, onClose }) => {
-  const navigate = useNavigate();
   const { logout } = useAuth();
 
   const handleLogout = () => {
-    logout();
+  logout();
 
-    navigate("/login", {
-      replace: true,
-    });
+  window.location.replace("/");
 
-    onClose?.();
+  onClose?.();
   };
 
   const handleNavigation = () => {

@@ -1,8 +1,19 @@
-
+import { useState } from "react";
 import AppRoutes from "./routes/AppRoutes";
+import SplashScreen from "./components/SplashScreen";
 
 function App() {
-  return <AppRoutes />;
+  const [showSplash, setShowSplash] = useState(true);
+
+  return (
+    <>
+      {showSplash && (
+        <SplashScreen onComplete={() => setShowSplash(false)} />
+      )}
+
+      <AppRoutes />
+    </>
+  );
 }
 
 export default App;

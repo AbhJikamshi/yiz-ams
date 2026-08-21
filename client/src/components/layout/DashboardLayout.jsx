@@ -6,7 +6,7 @@ const DashboardLayout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-slate-100">
+    <div className="flex min-h-screen bg-slate-100 text-slate-900 transition-colors dark:bg-slate-950 dark:text-slate-100">
 
       <Sidebar
         isOpen={sidebarOpen}
@@ -19,7 +19,7 @@ const DashboardLayout = ({ children }) => {
           onMenuClick={() => setSidebarOpen(true)}
         />
 
-        <main className="min-w-0 flex-1 overflow-auto p-4 sm:p-5 md:p-6">
+        <main className="min-w-0 flex-1 overflow-auto bg-slate-100 p-4 transition-colors dark:bg-slate-950 sm:p-5 md:p-6">
           {children}
         </main>
 
