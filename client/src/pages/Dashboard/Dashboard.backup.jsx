@@ -162,15 +162,15 @@ const Dashboard = () => {
 
           {/* Total Members */}
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
             <div className="flex items-start justify-between">
 
               <div>
-                <p className="text-sm font-medium text-slate-500">
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-300">
                   Total Members
                 </p>
 
-                <p className="mt-3 text-3xl font-bold text-slate-900">
+                <p className="mt-3 text-3xl font-bold text-slate-900 dark:text-white">
                   {Number(data.totalMembers || 0).toLocaleString()}
                 </p>
               </div>
@@ -188,15 +188,15 @@ const Dashboard = () => {
 
           {/* Active Members */}
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
             <div className="flex items-start justify-between">
 
               <div>
-                <p className="text-sm font-medium text-slate-500">
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-300">
                   Active Members
                 </p>
 
-                <p className="mt-3 text-3xl font-bold text-slate-900">
+                <p className="mt-3 text-3xl font-bold text-slate-900 dark:text-white">
                   {Number(data.activeMembers || 0).toLocaleString()}
                 </p>
               </div>
@@ -207,7 +207,7 @@ const Dashboard = () => {
 
             </div>
 
-            <p className="mt-3 text-sm text-emerald-600">
+            <p className="mt-3 text-sm text-emerald-600 dark:text-emerald-400">
               Currently active
             </p>
           </div>
@@ -671,11 +671,11 @@ const Dashboard = () => {
         </div>
       </div>
 
-{/* =====================================
-    FLOATING QUICK ACTIONS
-===================================== */}
+{/* ============================================================
+    FLOATING DASHBOARD ACTIONS
+============================================================ */}
 
-<div className="fixed bottom-5 right-5 z-40 flex flex-col gap-3">
+<div className="fixed bottom-5 right-5 z-40 flex flex-col items-center gap-3 sm:bottom-6 sm:right-6">
 
   {/* MANAGE MEMBERS */}
 
@@ -683,7 +683,7 @@ const Dashboard = () => {
     to="/members"
     title="Manage Members"
     aria-label="Manage Members"
-    className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg ring-4 ring-white transition hover:scale-105 hover:bg-blue-700"
+    className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg ring-4 ring-white transition hover:scale-105 hover:bg-blue-700 dark:ring-gray-900"
   >
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -700,6 +700,21 @@ const Dashboard = () => {
     </svg>
   </Link>
 
+  {/* MAKE PAYMENT */}
+
+  <Link
+    to="/contributions"
+    title="Make Payment"
+    aria-label="Make Payment"
+    className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-xl ring-1 ring-gray-200 transition-all duration-200 hover:scale-105 hover:shadow-2xl active:scale-95 dark:bg-gray-800 dark:ring-gray-700"
+  >
+    <span
+      className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-red-600 text-xl font-extrabold text-white shadow-sm"
+      aria-hidden="true"
+    >
+      ₦
+    </span>
+  </Link>
 
   {/* VERIFY PAYMENTS */}
 
@@ -707,7 +722,7 @@ const Dashboard = () => {
     to="/payment-verification"
     title="Verify Payments"
     aria-label="Verify Payments"
-    className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg ring-4 ring-white transition hover:scale-105 hover:bg-emerald-700"
+    className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg ring-4 ring-white transition hover:scale-105 hover:bg-emerald-700 dark:ring-gray-900"
   >
     <div className="relative flex items-center justify-center">
 
@@ -753,8 +768,8 @@ const Dashboard = () => {
 
 </div>
 
-    </DashboardLayout>
-  );
+  </DashboardLayout>
+);
 };
 
 export default Dashboard;

@@ -5,12 +5,22 @@ import {
 } from "react-router-dom";
 
 import {
+  MoonIcon,
+  SunIcon,
+} from "@heroicons/react/24/outline";
+
+import { useTheme } from "../../contexts/ThemeContext";
+
+import {
   getUnreadNotificationCount,
 } from "../../services/memberNotificationApi";
 
 export default function MemberNavigation() {
   const location = useLocation();
-  const currentPath = location.pathname;
+const currentPath = location.pathname;
+
+const { theme, toggleTheme } = useTheme();
+const isDark = theme === "dark";
 
   const [mobileMenuOpen, setMobileMenuOpen] =
     useState(false);
@@ -164,32 +174,35 @@ export default function MemberNavigation() {
           Visible only below md breakpoint
       ================================================== */}
 
-      <header
-        className="
-          fixed
-          left-0
-          right-0
-          top-0
-          z-[200]
-          border-b
-          border-slate-200
-          bg-white/95
-          shadow-sm
-          backdrop-blur-md
-          md:hidden
-        "
-      >
+       <header
+          className="
+            fixed
+            left-0
+            right-0
+            top-0
+            z-[200]
+            border-b
+            border-slate-200
+            bg-white/95
+            shadow-sm
+            backdrop-blur-md
+            transition-colors
+            dark:border-slate-700
+            dark:bg-slate-900/95
+            md:hidden
+          "
+        >
         <div className="flex h-16 items-center justify-between px-4">
 
           {/* BRAND / TITLE */}
 
           <div className="min-w-0">
-            <p className="truncate text-sm font-bold text-slate-900">
+            <p className="truncate text-sm font-bold text-slate-900 dark:text-white">
               YIZ-AMS
             </p>
 
-            <p className="truncate text-xs text-slate-500">
-              Member Area
+            <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+              Member
             </p>
           </div>
 
@@ -264,6 +277,51 @@ export default function MemberNavigation() {
                   </span>
                 )}
             </Link>
+             {/* =================================================
+                 THEME TOGGLE
+                ================================================= */}
+
+<button
+  type="button"
+  onClick={toggleTheme}
+  aria-label={
+    isDark
+      ? "Switch to light mode"
+      : "Switch to dark mode"
+  }
+  title={
+    isDark
+      ? "Switch to light mode"
+      : "Switch to dark mode"
+  }
+  className="
+    flex
+    h-11
+    w-11
+    shrink-0
+    items-center
+    justify-center
+    rounded-xl
+    border
+    border-slate-200
+    bg-white
+    text-slate-700
+    shadow-sm
+    transition
+    hover:bg-slate-50
+    active:scale-95
+    dark:border-slate-700
+    dark:bg-slate-800
+    dark:text-slate-200
+    dark:hover:bg-slate-700
+  "
+>
+  {isDark ? (
+    <SunIcon className="h-6 w-6" />
+  ) : (
+    <MoonIcon className="h-6 w-6" />
+  )}
+</button>
 
             {/* =================================================
                 HAMBURGER
@@ -351,6 +409,9 @@ export default function MemberNavigation() {
           border-r
           border-slate-200
           bg-white
+          transition-colors
+          dark:border-slate-700
+          dark:bg-slate-900
           shadow-2xl
           transition-transform
           duration-300
@@ -367,14 +428,25 @@ export default function MemberNavigation() {
 
         {/* DRAWER HEADER */}
 
-        <div className="flex h-16 items-center justify-between border-b border-slate-200 px-5">
+        <div
+  className="
+    flex
+    h-16
+    items-center
+    justify-between
+    border-b
+    border-slate-200
+    px-5
+    dark:border-slate-700
+  "
+>
 
           <div>
-            <p className="text-base font-bold text-slate-900">
+            <p className="text-base font-bold text-slate-900 dark:text-white">
               YIZ-AMS
             </p>
 
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Member Navigation
             </p>
           </div>
@@ -394,6 +466,9 @@ export default function MemberNavigation() {
               text-slate-500
               hover:bg-slate-100
               hover:text-slate-800
+              dark:text-slate-400
+              dark:hover:bg-slate-800
+              dark:hover:text-white
             "
           >
             ×
@@ -405,7 +480,7 @@ export default function MemberNavigation() {
 
         <div className="p-4">
 
-          <p className="mb-3 px-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+          <p className="mb-3 px-2 text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
             Menu
           </p>
 
@@ -439,8 +514,8 @@ export default function MemberNavigation() {
 
                     ${
                       active
-                        ? "border-blue-200 bg-blue-50 text-blue-700 shadow-sm"
-                        : "border-transparent text-slate-700 hover:border-slate-200 hover:bg-slate-50"
+                        ? "border-[#0077B6] bg-[#0077B6] text-white shadow-sm"
+                        : "border-transparent text-slate-600 hover:border-slate-200 hover:bg-sky-50 hover:text-[#0077B6] dark:text-slate-300 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-[#00B4D8]"
                     }
                   `}
                 >
@@ -460,8 +535,8 @@ export default function MemberNavigation() {
 
                       ${
                         active
-                          ? "bg-blue-100"
-                          : "bg-slate-100"
+                          ? "bg-blue-100 dark:bg-blue-900/50"
+                          : "bg-slate-100 dark:bg-slate-800"
                       }
                     `}
                   >
@@ -481,15 +556,21 @@ export default function MemberNavigation() {
 
                         ${
                           active
-                            ? "text-blue-700"
-                            : "text-slate-800"
+                          ? "text-white"
+                          : "text-slate-600 dark:text-slate-300"
                         }
                       `}
                     >
                       {item.mobileTitle}
                     </p>
 
-                    <p className="mt-0.5 text-xs text-slate-500">
+                    <p
+  className={`mt-0.5 text-xs ${
+    active
+      ? "text-sky-100"
+      : "text-slate-500 dark:text-slate-400"
+  }`}
+>
                       {item.description}
                     </p>
 
@@ -505,7 +586,7 @@ export default function MemberNavigation() {
                       ${
                         active
                           ? "text-blue-600"
-                          : "text-slate-300"
+                          : "text-slate-300 dark:text-slate-600"
                       }
                     `}
                   >

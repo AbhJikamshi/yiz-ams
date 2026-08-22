@@ -16,9 +16,9 @@ import { useAuth } from "../../contexts/AuthContext";
 
 const menu = [
   {
-  name: "Dashboard",
-  path: "/dashboard",
-  icon: HomeIcon,
+    name: "Dashboard",
+    path: "/dashboard",
+    icon: HomeIcon,
   },
   {
     name: "Members",
@@ -61,11 +61,9 @@ const Sidebar = ({ isOpen, onClose }) => {
   const { logout } = useAuth();
 
   const handleLogout = () => {
-  logout();
-
-  window.location.replace("/");
-
-  onClose?.();
+    logout();
+    window.location.replace("/");
+    onClose?.();
   };
 
   const handleNavigation = () => {
@@ -90,9 +88,16 @@ const Sidebar = ({ isOpen, onClose }) => {
         className={`
           fixed inset-y-0 left-0 z-50
           flex w-72 flex-col
-          bg-slate-900 text-white
-          shadow-2xl
-          transition-transform duration-300 ease-in-out
+          
+          bg-white text-[var(--text-primary)]
+          border-r border-[var(--border)]
+          shadow-xl
+          
+          transition-all duration-300 ease-in-out
+
+          dark:bg-slate-900
+          dark:text-slate-100
+          dark:border-slate-700
 
           md:static
           md:z-auto
@@ -105,14 +110,20 @@ const Sidebar = ({ isOpen, onClose }) => {
       >
 
         {/* Logo */}
-        <div className="flex items-center justify-between border-b border-slate-700 p-5 sm:p-6">
-
+        <div
+          className="
+            flex items-center justify-between
+            border-b border-[var(--border)]
+            p-5 sm:p-6
+            dark:border-slate-700
+          "
+        >
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">
+            <h1 className="text-2xl font-bold tracking-tight text-[var(--text-primary)] dark:text-white">
               YIZ-AMS
             </h1>
 
-            <p className="mt-1 text-sm text-slate-400">
+            <p className="mt-1 text-sm text-[var(--text-muted)] dark:text-slate-400">
               Association Management
             </p>
           </div>
@@ -123,16 +134,18 @@ const Sidebar = ({ isOpen, onClose }) => {
             onClick={onClose}
             className="
               rounded-lg p-2
-              text-slate-300
-              hover:bg-slate-800
-              hover:text-white
+              text-[var(--text-secondary)]
+              hover:bg-[var(--accent-bg)]
+              hover:text-[var(--accent)]
+              dark:text-slate-300
+              dark:hover:bg-slate-800
+              dark:hover:text-white
               md:hidden
             "
             aria-label="Close menu"
           >
             <XMarkIcon className="h-6 w-6" />
           </button>
-
         </div>
 
         {/* Navigation */}
@@ -147,10 +160,10 @@ const Sidebar = ({ isOpen, onClose }) => {
                 to={item.path}
                 onClick={handleNavigation}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-xl px-4 py-3.5 text-base font-medium transition ${
+                  `flex items-center gap-3 rounded-xl px-4 py-3.5 text-base font-medium transition-all duration-200 ${
                     isActive
-                      ? "bg-blue-600 text-white shadow-sm"
-                      : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                      ? "bg-[var(--accent-bg)] text-[var(--accent)] shadow-sm dark:bg-blue-900/40 dark:text-blue-400"
+                      : "text-[var(--text-secondary)] hover:bg-[var(--accent-bg)] hover:text-[var(--accent)] dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
                   }`
                 }
               >
@@ -164,8 +177,13 @@ const Sidebar = ({ isOpen, onClose }) => {
         </nav>
 
         {/* Logout */}
-        <div className="border-t border-slate-700 p-3 sm:p-4">
-
+        <div
+          className="
+            border-t border-[var(--border)]
+            p-3 sm:p-4
+            dark:border-slate-700
+          "
+        >
           <button
             type="button"
             onClick={handleLogout}
@@ -173,17 +191,19 @@ const Sidebar = ({ isOpen, onClose }) => {
               flex w-full items-center gap-3
               rounded-xl px-4 py-3.5
               text-base font-medium
-              text-slate-300
-              transition
-              hover:bg-red-600
-              hover:text-white
+              text-[var(--text-secondary)]
+              transition-all duration-200
+              hover:bg-red-50
+              hover:text-red-600
+              dark:text-slate-300
+              dark:hover:bg-red-600
+              dark:hover:text-white
             "
           >
             <ArrowLeftOnRectangleIcon className="h-6 w-6 shrink-0" />
 
             <span>Logout</span>
           </button>
-
         </div>
 
       </aside>

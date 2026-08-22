@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import memberApi from "../../services/memberApi";
+import MemberLayout from "../../components/layout/MemberLayout";
 
 // ======================================================
 // CONSTANTS
@@ -34,23 +35,13 @@ export default function MemberDashboard() {
     try {
       setLoading(true);
 
-      const response = await memberApi.get(
-        "/member/dashboard"
-      );
+      const response = await memberApi.get("/member/dashboard");
 
-      console.log(
-        "Dashboard Response:",
-        response.data
-      );
+      console.log("Dashboard Response:", response.data);
 
-      setDashboard(
-        response.data?.data || null
-      );
+      setDashboard(response.data?.data || null);
     } catch (err) {
-      console.error(
-        "Dashboard Error:",
-        err
-      );
+      console.error("Dashboard Error:", err);
     } finally {
       setLoading(false);
     }
@@ -70,57 +61,48 @@ export default function MemberDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 p-4 pb-28 pt-20 sm:p-6 sm:pb-28 sm:pt-20 lg:p-8 lg:pb-28 lg:pt-8">
-        <div className="mx-auto max-w-7xl">
+      <MemberLayout memberName="Member">
+        <div className="mx-auto w-full max-w-7xl">
 
-          <div className="animate-pulse">
+          <div className="animate-pulse space-y-6">
 
-            {/* Dashboard Header */}
-
-            <div className="mb-6 h-44 rounded-2xl bg-slate-200" />
+            {/* Welcome Header */}
+            <div className="h-48 rounded-3xl bg-slate-200 dark:bg-slate-800" />
 
             {/* Personal Summary */}
-
-            <div className="mb-8 grid grid-cols-1 gap-5 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
               {[1, 2, 3].map((item) => (
                 <div
                   key={item}
-                  className="h-36 rounded-2xl bg-white shadow-sm"
+                  className="h-40 rounded-2xl bg-white shadow-sm dark:bg-slate-800"
                 />
               ))}
             </div>
 
+            {/* Section Heading */}
+            <div className="h-8 w-72 rounded bg-slate-200 dark:bg-slate-800" />
+
             {/* Association Overview */}
-
-            <div className="mb-8">
-
-              <div className="mb-4 h-6 w-72 rounded bg-slate-200" />
-
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
-                {[1, 2, 3].map((item) => (
-                  <div
-                    key={item}
-                    className="h-36 rounded-2xl bg-white shadow-sm"
-                  />
-                ))}
-              </div>
-
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+              {[1, 2, 3].map((item) => (
+                <div
+                  key={item}
+                  className="h-40 rounded-2xl bg-white shadow-sm dark:bg-slate-800"
+                />
+              ))}
             </div>
 
             {/* Recent Activity */}
+            <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+              <div className="h-96 rounded-2xl bg-white shadow-sm dark:bg-slate-800" />
 
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-
-              <div className="h-80 rounded-2xl bg-white shadow-sm" />
-
-              <div className="h-80 rounded-2xl bg-white shadow-sm" />
-
+              <div className="h-96 rounded-2xl bg-white shadow-sm dark:bg-slate-800" />
             </div>
 
           </div>
 
         </div>
-      </div>
+      </MemberLayout>
     );
   }
 
@@ -148,58 +130,66 @@ export default function MemberDashboard() {
   // ======================================================
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 pb-28 pt-20 sm:p-6 sm:pb-28 sm:pt-20 lg:p-8 lg:pb-28 lg:pt-8">
+    <MemberLayout memberName={memberName}>
 
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto w-full max-w-7xl space-y-7">
 
-        {/* ================================================= */}
-        {/* DASHBOARD HEADER */}
-        {/* ================================================= */}
+        {/* ======================================================
+            WELCOME HEADER
+        ====================================================== */}
 
-        <div className="mb-6 overflow-hidden rounded-2xl bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 shadow-lg">
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0077B6] via-[#0096C7] to-[#023E8A] shadow-lg">
 
-          <div className="p-6 text-white sm:p-8">
+          {/* Decorative circles */}
 
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-white/10 blur-2xl" />
 
-              {/* WELCOME */}
+          <div className="absolute -bottom-32 -left-20 h-80 w-80 rounded-full bg-[#00B4D8]/20 blur-3xl" />
+
+          <div className="relative p-6 text-white sm:p-8 lg:p-10">
+
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
 
               <div>
 
-                <p className="text-sm font-medium text-blue-100">
-                  Welcome back
+                <p className="text-sm font-semibold uppercase tracking-wider text-cyan-100">
+                  Member Dashboard
                 </p>
 
-                <h1 className="mt-1 text-2xl font-bold sm:text-3xl">
-                  {memberName}
+                <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
+                  Welcome back, {memberName}
                 </h1>
 
-                <p className="mt-2 max-w-xl text-sm leading-6 text-blue-100">
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-cyan-50 sm:text-base">
                   View your contributions, payment activity,
-                  statements and association updates.
+                  financial information and association updates.
                 </p>
 
+              </div>
+
+              <div className="hidden h-20 w-20 items-center justify-center rounded-2xl border border-white/20 bg-white/10 text-4xl backdrop-blur sm:flex">
+                👤
               </div>
 
             </div>
 
           </div>
 
-        </div>
+        </section>
 
-        {/* ================================================= */}
-        {/* PERSONAL FINANCIAL SUMMARY */}
-        {/* ================================================= */}
+        {/* ======================================================
+            MY FINANCIAL SUMMARY
+        ====================================================== */}
 
-        <div className="mb-8">
+        <section>
 
           <div className="mb-4">
 
-            <h2 className="text-xl font-bold text-slate-900">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">
               My Financial Summary
             </h2>
 
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               Overview of your contribution account.
             </p>
 
@@ -209,29 +199,31 @@ export default function MemberDashboard() {
 
             {/* MEMBER */}
 
-            <div className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+            <div className="rounded-2xl border border-sky-100 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-800">
 
               <div className="flex items-start justify-between">
 
                 <div>
 
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                     Member
                   </p>
 
-                  <p className="mt-2 text-xl font-bold text-slate-900">
+                  <p className="mt-3 text-xl font-bold text-slate-900 dark:text-white">
                     {memberName}
                   </p>
 
                 </div>
 
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-xl text-blue-700">
-                  👤
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-50 text-xl dark:bg-sky-950/40">
+                  <span className="text-sky-600 dark:text-cyan-300">
+                    👤
+                  </span>
                 </div>
 
               </div>
 
-              <p className="mt-4 text-xs text-slate-400">
+              <p className="mt-4 text-xs text-slate-400 dark:text-slate-500">
                 Your registered association profile
               </p>
 
@@ -239,31 +231,29 @@ export default function MemberDashboard() {
 
             {/* TOTAL CONTRIBUTIONS */}
 
-            <div className="group rounded-2xl border border-emerald-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+            <div className="rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-emerald-900/50 dark:bg-slate-800">
 
               <div className="flex items-start justify-between">
 
                 <div>
 
-                  <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
                     My Total Contributions
                   </p>
 
-                  <p className="mt-2 text-2xl font-bold text-emerald-600">
-                    {formatCurrency(
-                      summary.totalPaid
-                    )}
+                  <p className="mt-3 text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">
+                    {formatCurrency(summary.totalPaid)}
                   </p>
 
                 </div>
 
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-xl">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-xl dark:bg-emerald-950/40">
                   💰
                 </div>
 
               </div>
 
-              <p className="mt-4 text-xs text-slate-400">
+              <p className="mt-4 text-xs text-slate-400 dark:text-slate-500">
                 Total amount you have paid
               </p>
 
@@ -271,31 +261,29 @@ export default function MemberDashboard() {
 
             {/* OUTSTANDING */}
 
-            <div className="group rounded-2xl border border-red-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+            <div className="rounded-2xl border border-rose-100 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-rose-900/50 dark:bg-slate-800">
 
               <div className="flex items-start justify-between">
 
                 <div>
 
-                  <p className="text-xs font-semibold uppercase tracking-wide text-red-600">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-rose-600 dark:text-rose-400">
                     Outstanding Balance
                   </p>
 
-                  <p className="mt-2 text-2xl font-bold text-red-600">
-                    {formatCurrency(
-                      summary.outstanding
-                    )}
+                  <p className="mt-3 text-2xl font-extrabold text-rose-600 dark:text-rose-400">
+                    {formatCurrency(summary.outstanding)}
                   </p>
 
                 </div>
 
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50 text-xl">
-                  ⚠️
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-rose-50 text-xl dark:bg-rose-950/40">
+                  ⚠
                 </div>
 
               </div>
 
-              <p className="mt-4 text-xs text-slate-400">
+              <p className="mt-4 text-xs text-slate-400 dark:text-slate-500">
                 Remaining contribution balance
               </p>
 
@@ -303,21 +291,21 @@ export default function MemberDashboard() {
 
           </div>
 
-        </div>
+        </section>
 
-        {/* ================================================= */}
-        {/* ASSOCIATION FINANCIAL OVERVIEW */}
-        {/* ================================================= */}
+        {/* ======================================================
+            ASSOCIATION FINANCIAL OVERVIEW
+        ====================================================== */}
 
-        <div className="mb-8">
+        <section>
 
           <div className="mb-4">
 
-            <h2 className="text-xl font-bold text-slate-900">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">
               Association Financial Overview
             </h2>
 
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               Overall financial summary of Ya Isa Zama Association.
             </p>
 
@@ -325,33 +313,31 @@ export default function MemberDashboard() {
 
           <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
 
-            {/* TOTAL CONTRIBUTIONS */}
+            {/* CONTRIBUTIONS */}
 
-            <div className="rounded-2xl border border-emerald-200 bg-white p-6 shadow-sm transition hover:shadow-md">
+            <div className="rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-emerald-900/50 dark:bg-slate-800">
 
               <div className="flex items-start justify-between">
 
                 <div>
 
-                  <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
                     Total Contributions
                   </p>
 
-                  <p className="mt-2 text-2xl font-bold text-emerald-600">
-                    {formatCurrency(
-                      financials.totalContributions
-                    )}
+                  <p className="mt-3 text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">
+                    {formatCurrency(financials.totalContributions)}
                   </p>
 
                 </div>
 
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-xl">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-xl dark:bg-emerald-950/40">
                   📈
                 </div>
 
               </div>
 
-              <p className="mt-4 text-xs text-slate-400">
+              <p className="mt-4 text-xs text-slate-400 dark:text-slate-500">
                 Total contributions received
               </p>
 
@@ -359,31 +345,29 @@ export default function MemberDashboard() {
 
             {/* EXPENSES */}
 
-            <div className="rounded-2xl border border-red-200 bg-white p-6 shadow-sm transition hover:shadow-md">
+            <div className="rounded-2xl border border-rose-100 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-rose-900/50 dark:bg-slate-800">
 
               <div className="flex items-start justify-between">
 
                 <div>
 
-                  <p className="text-xs font-semibold uppercase tracking-wide text-red-600">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-rose-600 dark:text-rose-400">
                     Total Expenses
                   </p>
 
-                  <p className="mt-2 text-2xl font-bold text-red-600">
-                    {formatCurrency(
-                      financials.totalExpenses
-                    )}
+                  <p className="mt-3 text-2xl font-extrabold text-rose-600 dark:text-rose-400">
+                    {formatCurrency(financials.totalExpenses)}
                   </p>
 
                 </div>
 
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50 text-xl">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-rose-50 text-xl dark:bg-rose-950/40">
                   💸
                 </div>
 
               </div>
 
-              <p className="mt-4 text-xs text-slate-400">
+              <p className="mt-4 text-xs text-slate-400 dark:text-slate-500">
                 Total recorded association expenses
               </p>
 
@@ -391,39 +375,35 @@ export default function MemberDashboard() {
 
             {/* BALANCE */}
 
-            <div className="rounded-2xl border border-blue-200 bg-white p-6 shadow-sm transition hover:shadow-md">
+            <div className="rounded-2xl border border-sky-100 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-sky-900/50 dark:bg-slate-800">
 
               <div className="flex items-start justify-between">
 
                 <div>
 
-                  <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-[#0077B6] dark:text-[#00B4D8]">
                     Association Balance
                   </p>
 
                   <p
-                    className={`mt-2 text-2xl font-bold ${
-                      Number(
-                        financials.balance || 0
-                      ) >= 0
-                        ? "text-blue-600"
-                        : "text-red-600"
+                    className={`mt-3 text-2xl font-extrabold ${
+                      Number(financials.balance || 0) >= 0
+                        ? "text-[#0077B6] dark:text-[#00B4D8]"
+                        : "text-rose-600 dark:text-rose-400"
                     }`}
                   >
-                    {formatCurrency(
-                      financials.balance
-                    )}
+                    {formatCurrency(financials.balance)}
                   </p>
 
                 </div>
 
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-xl">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-50 text-xl dark:bg-sky-950/40">
                   💼
                 </div>
 
               </div>
 
-              <p className="mt-4 text-xs text-slate-400">
+              <p className="mt-4 text-xs text-slate-400 dark:text-slate-500">
                 Contributions minus expenses
               </p>
 
@@ -431,48 +411,60 @@ export default function MemberDashboard() {
 
           </div>
 
-        </div>
+        </section>
 
-        {/* ================================================= */}
-        {/* RECENT PAYMENTS + ANNOUNCEMENTS */}
-        {/* ================================================= */}
+        {/* ======================================================
+            RECENT PAYMENTS + ANNOUNCEMENTS
+        ====================================================== */}
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
 
-          {/* ================================================= */}
-          {/* RECENT PAYMENTS */}
-          {/* ================================================= */}
+          {/* ====================================================
+              RECENT PAYMENTS
+          ==================================================== */}
 
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <section className="overflow-hidden rounded-2xl border border-sky-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
 
-            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
+            <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-5 dark:border-slate-700 sm:flex-row sm:items-center sm:justify-between sm:px-6">
 
               <div>
 
-                <h2 className="text-lg font-bold text-slate-900">
-                  Recent Payments
-                </h2>
+                <div className="flex items-center gap-3">
 
-                <p className="mt-1 text-sm text-slate-500">
-                  Your latest contribution activity.
-                </p>
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400">
+                    ₦
+                  </div>
+
+                  <div>
+
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                      Recent Payments
+                    </h2>
+
+                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                      Your latest contribution activity.
+                    </p>
+
+                  </div>
+
+                </div>
 
               </div>
 
               <Link
                 to="/member/payment-history"
-                className="text-sm font-semibold text-blue-600 hover:text-blue-700"
+                className="font-semibold text-[#0077B6] transition hover:text-[#023E8A] dark:text-[#00B4D8] dark:hover:text-[#90E0EF]"
               >
-                View all
+                View all →
               </Link>
 
             </div>
 
-            <div className="p-6">
+            <div className="p-5 sm:p-6">
 
               {recentPayments.length > 0 ? (
 
-                <div className="space-y-4">
+                <div className="space-y-3">
 
                   {recentPayments
                     .slice(0, 5)
@@ -480,24 +472,22 @@ export default function MemberDashboard() {
 
                       <div
                         key={payment.id}
-                        className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-4"
+                        className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 p-4 transition hover:bg-sky-50/60 dark:border-slate-700 dark:bg-slate-900/60 dark:hover:bg-slate-700/60"
                       >
 
-                        <div className="flex items-center gap-3">
+                        <div className="flex min-w-0 items-center gap-3">
 
-                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-100 font-bold text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
                             ₦
                           </div>
 
-                          <div>
+                          <div className="min-w-0">
 
-                            <p className="font-semibold text-slate-900">
-                              Month{" "}
-                              {payment.monthNumber}{" "}
-                              {payment.year}
+                            <p className="truncate font-semibold text-slate-900 dark:text-white">
+                              Month {payment.monthNumber} {payment.year}
                             </p>
 
-                            <p className="mt-1 text-xs text-slate-500">
+                            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                               {payment.status}
                             </p>
 
@@ -505,10 +495,8 @@ export default function MemberDashboard() {
 
                         </div>
 
-                        <p className="font-bold text-emerald-600">
-                          {formatCurrency(
-                            payment.amount
-                          )}
+                        <p className="shrink-0 font-bold text-emerald-600 dark:text-emerald-400">
+                          {formatCurrency(payment.amount)}
                         </p>
 
                       </div>
@@ -521,21 +509,21 @@ export default function MemberDashboard() {
 
                 <div className="py-10 text-center">
 
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-xl">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-xl dark:bg-slate-700">
                     💳
                   </div>
 
-                  <p className="mt-3 font-semibold text-slate-700">
+                  <p className="mt-3 font-semibold text-slate-700 dark:text-slate-200">
                     No payments yet
                   </p>
 
-                  <p className="mt-1 text-sm text-slate-400">
+                  <p className="mt-1 text-sm text-slate-400 dark:text-slate-500">
                     Your contribution activity will appear here.
                   </p>
 
                   <Link
                     to="/member/payments"
-                    className="mt-4 inline-flex rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
+                    className="mt-4 inline-flex rounded-xl bg-[#0077B6] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#023E8A]"
                   >
                     Make Payment
                   </Link>
@@ -546,42 +534,54 @@ export default function MemberDashboard() {
 
             </div>
 
-          </div>
+          </section>
 
-          {/* ================================================= */}
-          {/* ANNOUNCEMENTS */}
-          {/* ================================================= */}
+          {/* ====================================================
+              ANNOUNCEMENTS
+          ==================================================== */}
 
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <section className="overflow-hidden rounded-2xl border border-sky-100 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
 
-            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
+            <div className="flex flex-col gap-3 border-b border-slate-100 px-5 py-5 dark:border-slate-700 sm:flex-row sm:items-center sm:justify-between sm:px-6">
 
               <div>
 
-                <h2 className="text-lg font-bold text-slate-900">
-                  Announcements
-                </h2>
+                <div className="flex items-center gap-3">
 
-                <p className="mt-1 text-sm text-slate-500">
-                  Latest association updates.
-                </p>
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-50 text-sky-600 dark:bg-sky-950/40 dark:text-cyan-300">
+                    📢
+                  </div>
+
+                  <div>
+
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                      Announcements
+                    </h2>
+
+                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                      Latest association updates.
+                    </p>
+
+                  </div>
+
+                </div>
 
               </div>
 
               <Link
                 to="/member/notifications"
-                className="text-sm font-semibold text-blue-600 hover:text-blue-700"
+                className="font-semibold text-[#0077B6] transition hover:text-[#023E8A] dark:text-[#00B4D8] dark:hover:text-[#90E0EF]"
               >
                 Notifications
               </Link>
 
             </div>
 
-            <div className="p-6">
+            <div className="p-5 sm:p-6">
 
               {announcements.length > 0 ? (
 
-                <div className="space-y-4">
+                <div className="space-y-3">
 
                   {announcements
                     .slice(0, 5)
@@ -589,22 +589,22 @@ export default function MemberDashboard() {
 
                       <div
                         key={item.id}
-                        className="rounded-xl border border-blue-100 bg-blue-50/50 p-4"
+                        className="rounded-xl border border-sky-100 bg-sky-50/60 p-4 transition hover:bg-sky-50 dark:border-slate-700 dark:bg-slate-900/50 dark:hover:bg-slate-700/60"
                       >
 
                         <div className="flex items-start gap-3">
 
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-700">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-700 dark:bg-sky-950/60 dark:text-cyan-300">
                             📢
                           </div>
 
                           <div className="min-w-0">
 
-                            <p className="font-semibold text-slate-900">
+                            <p className="font-semibold text-slate-900 dark:text-white">
                               {item.title}
                             </p>
 
-                            <p className="mt-1 text-sm leading-5 text-slate-600">
+                            <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">
                               {item.message}
                             </p>
 
@@ -622,15 +622,15 @@ export default function MemberDashboard() {
 
                 <div className="py-10 text-center">
 
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-xl">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-xl dark:bg-slate-700">
                     📢
                   </div>
 
-                  <p className="mt-3 font-semibold text-slate-700">
+                  <p className="mt-3 font-semibold text-slate-700 dark:text-slate-200">
                     No announcements
                   </p>
 
-                  <p className="mt-1 text-sm text-slate-400">
+                  <p className="mt-1 text-sm text-slate-400 dark:text-slate-500">
                     New association announcements will appear here.
                   </p>
 
@@ -640,47 +640,53 @@ export default function MemberDashboard() {
 
             </div>
 
-          </div>
+          </section>
 
         </div>
 
       </div>
 
-      {/* =========================================
-          QUICK MAKE PAYMENT BUTTON
-      ========================================= */}
+      {/* ======================================================
+          FLOATING MAKE PAYMENT
+      ====================================================== */}
 
       <Link
-        to="/member/payments"
-        className="
-          fixed
-          bottom-24
-          right-5
-          z-[90]
-          flex
-          h-12
-          w-12
-          items-center
-          justify-center
-          rounded-full
-          bg-blue-600
-          text-xl
-          font-bold
-          text-white
-          shadow-lg
-          transition
-          hover:bg-blue-700
-          hover:scale-105
-          active:scale-95
-          sm:bottom-6
-          sm:right-6
-        "
-        title="Make Payment"
-        aria-label="Make Payment"
-      >
-        ₦
-      </Link>
+  to="/member/payments"
+  title="Make Payment"
+  aria-label="Make Payment"
+  className="
+    fixed
+    bottom-24
+    right-5
+    z-[90]
+    flex
+    h-14
+    w-14
+    items-center
+    justify-center
+    rounded-2xl
+    bg-[#14532D]
+    text-xl
+    font-extrabold
+    text-white
+    dark:text-slate-100
+    shadow-xl
+    ring-4
+    ring-white
+    transition-all
+    duration-200
+    hover:scale-105
+    hover:bg-[#023E8A]
+    hover:shadow-2xl
+    active:scale-95
+    dark:ring-slate-950
+    sm:bottom-6
+    sm:right-6
+  "
+>
+  ₦
+</Link>
 
-    </div>
+    </MemberLayout>
   );
 }
