@@ -1,6 +1,8 @@
 import prisma from "../config/prisma.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import { sendPasswordResetEmail } from "./emailService.js";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -37,7 +39,6 @@ export const registerMember = async (data) => {
 // Member Login
 export const loginMember = async (email, password) => {
   console.log("Login email:", email);
-  console.log("Login password:", password);
 
   const member = await prisma.member.findUnique({
     where: { email },
@@ -108,4 +109,158 @@ export const verifyMember = async (id) => {
       createdAt: true,
     },
   });
+};
+
+// Request Password Reset
+export const requestPasswordReset = async (email) => {
+  const member = await prisma.member.findUnique({
+    where: { email },
+  });
+
+  // Always return the same response whether the email exists or not.
+  if (!member) {
+    return {
+      message:
+        "If an account with that email exists, a password reset link has been sent.",
+    };
+  }
+
+  // Remove any previous reset tokens for this member.
+  await prisma.memberPasswordReset.deleteMany({
+    where: {
+      memberId: member.id,
+    },
+  });
+
+  // Generate a secure random token.
+  const resetToken = crypto.randomBytes(32).toString("hex");
+
+  const expiresInMinutes =
+    Number(process.env.PASSWORD_RESET_EXPIRES_MINUTES) || 15;
+
+  const expiresAt = new Date(
+    Date.now() + expiresInMinutes * 60 * 1000
+  );
+
+  await prisma.memberPasswordReset.create({
+    data: {
+      token: resetToken,
+      memberId: member.id,
+      expiresAt,
+    },
+  });
+
+  await sendPasswordResetEmail({
+    email: member.email,
+    fullName: member.fullName,
+    resetToken,
+  });
+
+  return {
+    message:
+      "If an account with that email exists, a password reset link has been sent.",
+  };
+};
+
+// Verify Password Reset Token
+export const verifyPasswordResetToken = async (token) => {
+  if (!token) {
+    const error = new Error("Reset token is required.");
+    error.status = 400;
+    throw error;
+  }
+
+  const reset = await prisma.memberPasswordReset.findUnique({
+    where: {
+      token,
+    },
+  });
+
+  if (!reset) {
+    const error = new Error("Invalid or expired reset link.");
+    error.status = 400;
+    throw error;
+  }
+
+  if (reset.expiresAt < new Date()) {
+    await prisma.memberPasswordReset.delete({
+      where: {
+        id: reset.id,
+      },
+    });
+
+    const error = new Error("Invalid or expired reset link.");
+    error.status = 400;
+    throw error;
+  }
+
+  return {
+    valid: true,
+  };
+};
+
+// Reset Member Password
+export const resetMemberPassword = async (
+  token,
+  newPassword
+) => {
+  if (!token) {
+    const error = new Error("Reset token is required.");
+    error.status = 400;
+    throw error;
+  }
+
+  if (!newPassword || newPassword.length < 6) {
+    const error = new Error(
+      "New password must be at least 6 characters long."
+    );
+    error.status = 400;
+    throw error;
+  }
+
+  const reset = await prisma.memberPasswordReset.findUnique({
+    where: {
+      token,
+    },
+    include: {
+      member: true,
+    },
+  });
+
+  if (!reset || reset.expiresAt < new Date()) {
+    if (reset) {
+      await prisma.memberPasswordReset.delete({
+        where: {
+          id: reset.id,
+        },
+      });
+    }
+
+    const error = new Error("Invalid or expired reset link.");
+    error.status = 400;
+    throw error;
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  await prisma.$transaction([
+    prisma.member.update({
+      where: {
+        id: reset.memberId,
+      },
+      data: {
+        password: hashedPassword,
+      },
+    }),
+
+    prisma.memberPasswordReset.delete({
+      where: {
+        id: reset.id,
+      },
+    }),
+  ]);
+
+  return {
+    message: "Password reset successfully.",
+  };
 };

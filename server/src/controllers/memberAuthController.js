@@ -51,3 +51,57 @@ export const profile = async (req, res, next) => {
     next(error);
   }
 };
+
+// Request Password Reset
+export const requestPasswordReset = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    const result =
+      await memberAuthService.requestPasswordReset(email);
+
+    res.json({
+      success: true,
+      message: result.message,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Verify Password Reset Token
+export const verifyPasswordResetToken = async (req, res, next) => {
+  try {
+    const { token } = req.query;
+
+    const result =
+      await memberAuthService.verifyPasswordResetToken(token);
+
+    res.json({
+      success: true,
+      ...result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Reset Member Password
+export const resetMemberPassword = async (req, res, next) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    const result =
+      await memberAuthService.resetMemberPassword(
+        token,
+        newPassword
+      );
+
+    res.json({
+      success: true,
+      message: result.message,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

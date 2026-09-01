@@ -27,7 +27,8 @@ import MemberPaymentHistory from "../pages/Members/MemberPaymentHistory";
 import MemberStatement from "../pages/Members/MemberStatement";
 import MemberProfile from "../pages/Members/MemberProfile";
 import MemberNotifications from "../pages/Members/MemberNotifications";
-
+import ForgotPassword from "../pages/Members/ForgotPassword";
+import ResetPassword from "../pages/Members/ResetPassword";
 // =========================
 // Route Guards
 // =========================
@@ -195,7 +196,24 @@ const AppRoutes = () => {
           </MemberProtectedRoute>
         }
       />
-    </Routes>
+
+          <Route
+      path="/member/login"
+      element={<MemberLogin />}
+    />
+
+    <Route
+      path="/member/forgot-password"
+      element={<ForgotPassword />}
+    />
+      
+      <Route
+      path="/member/reset-password"
+      element={<ResetPassword />}
+    />
+</Routes>
+
+
   );
 };
 

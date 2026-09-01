@@ -23,4 +23,21 @@ router.get(
   memberAuthController.profile
 );
 
+// Forgot Password
+router.post(
+  "/forgot-password",
+  memberAuthController.requestPasswordReset
+);
+
+// Verify Password Reset Token
+router.get(
+  "/verify-reset-token",
+  memberAuthController.verifyPasswordResetToken
+);
+
+// Reset Password
+router.post(
+  "/reset-password",
+  memberAuthController.resetMemberPassword
+);
 export default router;
