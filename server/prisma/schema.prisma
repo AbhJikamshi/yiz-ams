@@ -36,8 +36,21 @@ model Member {
   contributions          Contribution[]
   notifications          Notification[]
   paymentRequests        PaymentRequest[]
+  passwordResets         MemberPasswordReset[]
 
   @@index([status])
+}
+model MemberPasswordReset {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  memberId  Int
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([memberId])
+  @@index([expiresAt])
 }
 model Contribution {
   id          Int                @id @default(autoincrement())
