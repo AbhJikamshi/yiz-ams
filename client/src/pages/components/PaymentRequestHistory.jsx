@@ -1,25 +1,6 @@
 import { useMemo, useState } from "react";
 
-const API_BASE =
-  import.meta.env.VITE_API_URL?.replace(/\/api$/, "") ||
-  "http://localhost:5000";
 const NGN = "₦";
-
-const months = [
-  "",
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
 
 const formatCurrency = (amount) =>
   `${NGN}${Number(amount || 0).toLocaleString("en-NG", {
@@ -28,478 +9,521 @@ const formatCurrency = (amount) =>
   })}`;
 
 const formatDate = (date) => {
-  if (!date) return "—";
+  if (!date) return "N/A";
 
-  return new Date(date).toLocaleDateString("en-NG", {
+  const parsed = new Date(date);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return "N/A";
+  }
+
+  return parsed.toLocaleDateString("en-NG", {
     day: "2-digit",
     month: "short",
     year: "numeric",
   });
 };
 
-const getStatusStyles = (status) => {
-  switch (status) {
+const getStatusClasses = (status) => {
+  switch (String(status || "").toUpperCase()) {
     case "APPROVED":
-      return {
-        badge:
-          "border-emerald-200 bg-emerald-50 text-emerald-700",
-        icon: "✓",
-        label: "Approved",
-      };
+      return "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-400";
+
+    case "PENDING":
+      return "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-400";
 
     case "REJECTED":
-      return {
-        badge:
-          "border-red-200 bg-red-50 text-red-700",
-        icon: "!",
-        label: "Rejected",
-      };
+      return "border-red-200 bg-red-50 text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400";
 
     default:
-      return {
-        badge:
-          "border-amber-200 bg-amber-50 text-amber-700",
-        icon: "◷",
-        label: "Pending",
-      };
+      return "border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300";
   }
+};
+
+const getStatusLabel = (status) => {
+  const normalized = String(status || "").toUpperCase();
+
+  if (normalized === "APPROVED") return "Approved";
+  if (normalized === "PENDING") return "Pending";
+  if (normalized === "REJECTED") return "Rejected";
+
+  return normalized || "Unknown";
+};
+
+const getMonthName = (monthNumber) => {
+  const months = [
+    "",
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  return months[Number(monthNumber)] || "Unknown";
+};
+
+const getCoveredMonths = (request) => {
+  if (!Array.isArray(request?.months)) {
+    return [];
+  }
+
+  return [...request.months].sort((a, b) => {
+    if (Number(a.year) !== Number(b.year)) {
+      return Number(a.year) - Number(b.year);
+    }
+
+    return Number(a.monthNumber) - Number(b.monthNumber);
+  });
 };
 
 export default function PaymentRequestHistory({
   requests = [],
 }) {
-  const [activeFilter, setActiveFilter] = useState("ALL");
-
-  // ============================
-  // COUNTS
-  // ============================
-
-  const pendingCount = requests.filter(
-    (request) => request.status === "PENDING"
-  ).length;
-
-  const approvedCount = requests.filter(
-    (request) => request.status === "APPROVED"
-  ).length;
-
-  const rejectedCount = requests.filter(
-    (request) => request.status === "REJECTED"
-  ).length;
-
-  // ============================
-  // FILTERED REQUESTS
-  // ============================
+  const [filter, setFilter] = useState("ALL");
 
   const filteredRequests = useMemo(() => {
-    if (activeFilter === "ALL") {
+    const normalizedFilter = filter.toUpperCase();
+
+    if (normalizedFilter === "ALL") {
       return requests;
     }
 
     return requests.filter(
-      (request) => request.status === activeFilter
+      (request) =>
+        String(request.status || "").toUpperCase() ===
+        normalizedFilter
     );
-  }, [requests, activeFilter]);
+  }, [requests, filter]);
 
-  // ============================
-  // TOTAL SUBMITTED
-  // ============================
+  const counts = useMemo(() => {
+    return {
+      all: requests.length,
 
-  const totalSubmitted = useMemo(() => {
-    return filteredRequests.reduce(
-      (total, request) =>
-        total + Number(request.amount || 0),
-      0
-    );
-  }, [filteredRequests]);
+      pending: requests.filter(
+        (request) =>
+          String(request.status || "").toUpperCase() ===
+          "PENDING"
+      ).length,
 
+      approved: requests.filter(
+        (request) =>
+          String(request.status || "").toUpperCase() ===
+          "APPROVED"
+      ).length,
 
+      rejected: requests.filter(
+        (request) =>
+          String(request.status || "").toUpperCase() ===
+          "REJECTED"
+      ).length,
+    };
+  }, [requests]);
 
-  return (
-    <div className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-
-      {/* ============================
-          HEADER
-      ============================ */}
-
-      <div className="flex flex-col gap-4 border-b border-slate-200 p-6 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900">
+  if (!requests.length) {
+    return (
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="border-b border-slate-200 px-5 py-4 dark:border-slate-800 sm:px-6">
+          <h2 className="font-bold text-slate-900 dark:text-white">
             Payment History
           </h2>
 
-          <p className="mt-1 text-sm text-slate-500">
-            Track your contribution payment submissions
-            and verification status.
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Track your payment notifications and admin
+            verification status.
           </p>
         </div>
 
-        <div className="rounded-xl bg-blue-50 px-5 py-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">
-            {activeFilter === "ALL"
-              ? "Submitted Amount"
-              : `${getStatusStyles(activeFilter).label} Amount`}
-          </p>
+        <div className="flex min-h-[220px] flex-col items-center justify-center px-6 text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-2xl text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+            ₦
+          </div>
 
-          <p className="mt-1 text-xl font-bold text-blue-700">
-            {formatCurrency(totalSubmitted)}
+          <h3 className="mt-4 text-lg font-bold text-slate-900 dark:text-white">
+            No payment requests
+          </h3>
+
+          <p className="mt-1 max-w-md text-sm text-slate-500 dark:text-slate-400">
+            Your payment notifications will appear here
+            after you notify the association that you have
+            made a bank transfer.
           </p>
         </div>
       </div>
+    );
+  }
 
+  return (
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      {/* HEADER */}
 
+      <div className="border-b border-slate-200 px-5 py-4 dark:border-slate-800 sm:px-6">
+        <h2 className="font-bold text-slate-900 dark:text-white">
+          Payment History
+        </h2>
 
-      {/* ============================
-          SUMMARY
-      ============================ */}
-
-      <div className="grid grid-cols-2 border-b border-slate-200 sm:grid-cols-4">
-
-        <button
-          type="button"
-          onClick={() => setActiveFilter("ALL")}
-          className={`border-r border-slate-200 p-4 text-left transition ${
-            activeFilter === "ALL"
-              ? "bg-slate-50"
-              : "hover:bg-slate-50"
-          }`}
-        >
-          <p className="text-xs font-medium uppercase text-slate-500">
-            All
-          </p>
-
-          <p className="mt-1 text-2xl font-bold text-slate-900">
-            {requests.length}
-          </p>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveFilter("PENDING")}
-          className={`border-r border-slate-200 p-4 text-left transition ${
-            activeFilter === "PENDING"
-              ? "bg-amber-50"
-              : "hover:bg-amber-50"
-          }`}
-        >
-          <p className="text-xs font-medium uppercase text-amber-600">
-            Pending
-          </p>
-
-          <p className="mt-1 text-2xl font-bold text-amber-600">
-            {pendingCount}
-          </p>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveFilter("APPROVED")}
-          className={`border-r border-slate-200 p-4 text-left transition ${
-            activeFilter === "APPROVED"
-              ? "bg-emerald-50"
-              : "hover:bg-emerald-50"
-          }`}
-        >
-          <p className="text-xs font-medium uppercase text-emerald-600">
-            Approved
-          </p>
-
-          <p className="mt-1 text-2xl font-bold text-emerald-600">
-            {approvedCount}
-          </p>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveFilter("REJECTED")}
-          className={`p-4 text-left transition ${
-            activeFilter === "REJECTED"
-              ? "bg-red-50"
-              : "hover:bg-red-50"
-          }`}
-        >
-          <p className="text-xs font-medium uppercase text-red-600">
-            Rejected
-          </p>
-
-          <p className="mt-1 text-2xl font-bold text-red-600">
-            {rejectedCount}
-          </p>
-        </button>
-
-      </div>
-
-      {/* ============================
-          ACTIVE FILTER
-      ============================ */}
-
-      <div className="border-b border-slate-100 px-6 py-4">
-        <p className="text-sm text-slate-500">
-          Showing{" "}
-          <span className="font-semibold text-slate-800">
-            {filteredRequests.length}
-          </span>{" "}
-          {activeFilter === "ALL"
-            ? "payment requests"
-            : `${getStatusStyles(activeFilter).label.toLowerCase()} payment requests`}
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          Track your payment notifications and admin
+          verification status.
         </p>
       </div>
 
-      {/* ============================
-          REQUESTS
-      ============================ */}
+      {/* SUMMARY */}
 
-      <div className="space-y-4 p-6">
+      <div className="grid grid-cols-2 gap-3 border-b border-slate-200 p-4 dark:border-slate-800 sm:grid-cols-4">
+        <button
+          type="button"
+          onClick={() => setFilter("ALL")}
+          className={`rounded-xl border p-3 text-left transition ${
+            filter === "ALL"
+              ? "border-blue-300 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30"
+              : "border-slate-200 bg-slate-50 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-750"
+          }`}
+        >
+          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+            All
+          </p>
 
-        {filteredRequests.length === 0 ? (
-          <div className="py-12 text-center">
+          <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">
+            {counts.all}
+          </p>
+        </button>
 
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-2xl">
-              💳
-            </div>
+        <button
+          type="button"
+          onClick={() => setFilter("PENDING")}
+          className={`rounded-xl border p-3 text-left transition ${
+            filter === "PENDING"
+              ? "border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30"
+              : "border-slate-200 bg-slate-50 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800"
+          }`}
+        >
+          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+            Pending
+          </p>
 
-            <h3 className="mt-4 font-semibold text-slate-800">
-              No{" "}
-              {activeFilter === "ALL"
-                ? "payment requests"
-                : getStatusStyles(
-                    activeFilter
-                  ).label.toLowerCase()}{" "}
-              payment requests
-            </h3>
+          <p className="mt-1 text-2xl font-bold text-amber-600 dark:text-amber-400">
+            {counts.pending}
+          </p>
+        </button>
 
-            <p className="mt-1 text-sm text-slate-500">
-              {activeFilter === "ALL"
-                ? "Your payment submissions will appear here."
-                : "There are no payment requests with this status."}
-            </p>
+        <button
+          type="button"
+          onClick={() => setFilter("APPROVED")}
+          className={`rounded-xl border p-3 text-left transition ${
+            filter === "APPROVED"
+              ? "border-emerald-300 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/30"
+              : "border-slate-200 bg-slate-50 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800"
+          }`}
+        >
+          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+            Approved
+          </p>
 
-            {activeFilter !== "ALL" && (
-              <button
-                type="button"
-                onClick={() => setActiveFilter("ALL")}
-                className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
-              >
-                View All Payments
-              </button>
-            )}
+          <p className="mt-1 text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+            {counts.approved}
+          </p>
+        </button>
 
-          </div>
-        ) : (
-          filteredRequests.map((request) => {
-            const status = getStatusStyles(
-              request.status
-            );
+        <button
+          type="button"
+          onClick={() => setFilter("REJECTED")}
+          className={`rounded-xl border p-3 text-left transition ${
+            filter === "REJECTED"
+              ? "border-red-300 bg-red-50 dark:border-red-800 dark:bg-red-950/30"
+              : "border-slate-200 bg-slate-50 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800"
+          }`}
+        >
+          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+            Rejected
+          </p>
 
-            return (
-              <div
-                key={request.id}
-                className="rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-blue-200 hover:shadow-sm"
-              >
+          <p className="mt-1 text-2xl font-bold text-red-600 dark:text-red-400">
+            {counts.rejected}
+          </p>
+        </button>
+      </div>
 
-                {/* TOP */}
+      {/* RESULT COUNT */}
 
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="border-b border-slate-100 px-5 py-3 dark:border-slate-800">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          Showing{" "}
+          <strong className="text-slate-700 dark:text-slate-300">
+            {filteredRequests.length}
+          </strong>{" "}
+          payment{" "}
+          {filteredRequests.length === 1
+            ? "request"
+            : "requests"}
+        </p>
+      </div>
 
-                  <div className="flex items-start gap-3">
+      {/* MOBILE */}
 
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 font-bold text-blue-700">
-                      ₦
-                    </div>
+      <div className="space-y-4 p-4 md:hidden">
+        {filteredRequests.map((request) => {
+          const status = String(
+            request.status || ""
+          ).toUpperCase();
 
-                    <div>
-                      <h3 className="font-bold text-slate-900">
-                        Payment #{request.id}
-                      </h3>
+          const months = getCoveredMonths(request);
 
-                      <p className="mt-1 text-xs text-slate-500">
-                        Submitted{" "}
-                        {formatDate(
-                          request.createdAt
-                        )}
-                      </p>
-                    </div>
+          return (
+            <div
+              key={request.id}
+              className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60"
+            >
+              {/* TOP */}
 
-                  </div>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Payment Request
+                  </p>
 
-                  {/* STATUS */}
+                  <p className="mt-1 text-lg font-bold text-slate-900 dark:text-white">
+                    #{request.id}
+                  </p>
 
-                  <span
-                    className={`inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-bold ${status.badge}`}
-                  >
-                    <span>{status.icon}</span>
-                    {status.label}
-                  </span>
-
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    Submitted{" "}
+                    {formatDate(request.createdAt)}
+                  </p>
                 </div>
 
-                {/* MONTHS */}
+                <span
+                  className={`rounded-full border px-3 py-1 text-xs font-semibold ${getStatusClasses(
+                    status
+                  )}`}
+                >
+                  {getStatusLabel(status)}
+                </span>
+              </div>
 
-                <div className="mt-5">
+              {/* AMOUNT */}
 
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <div className="mt-4 rounded-xl bg-white p-4 dark:bg-slate-900">
+                <p className="text-xs font-medium text-slate-400">
+                  Submitted Amount
+                </p>
+
+                <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-white">
+                  {formatCurrency(request.amount)}
+                </p>
+
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                  Payment Date:{" "}
+                  {formatDate(request.paymentDate)}
+                </p>
+              </div>
+
+              {/* APPROVED MONTHS */}
+
+              {status === "APPROVED" && (
+                <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 dark:border-emerald-900 dark:bg-emerald-950/30">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
                     Contribution Months
                   </p>
 
-                  <div className="flex flex-wrap gap-2">
-
-                    {request.months?.length > 0 ? (
-                      request.months.map(
-                        (month) => (
-                          <span
-                            key={month.id}
-                            className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700"
-                          >
-                            {months[
-                              Number(
-                                month.monthNumber
-                              )
-                            ] || "Unknown"}{" "}
+                  {months.length > 0 ? (
+                    <div className="mt-2 space-y-1">
+                      {months.map((month) => (
+                        <div
+                          key={`${month.year}-${month.monthNumber}`}
+                          className="flex items-center justify-between text-sm"
+                        >
+                          <span className="font-medium text-emerald-800 dark:text-emerald-300">
+                            {getMonthName(
+                              month.monthNumber
+                            )}{" "}
                             {month.year}
                           </span>
-                        )
-                      )
-                    ) : (
-                      <span className="text-sm text-slate-400">
-                        No contribution months recorded.
-                      </span>
-                    )}
 
-                  </div>
+                          <span className="font-semibold text-emerald-700 dark:text-emerald-400">
+                            {formatCurrency(
+                              month.amount
+                            )}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-1 text-sm text-emerald-700 dark:text-emerald-400">
+                      Contribution months will appear
+                      here after approval.
+                    </p>
+                  )}
                 </div>
+              )}
 
-                {/* PAYMENT DETAILS */}
+              {/* REJECTION */}
 
-                <div className="mt-4 grid gap-3 sm:grid-cols-3">
-
-                  <div className="rounded-xl bg-slate-50 p-4">
-                    <p className="text-xs uppercase tracking-wide text-slate-400">
-                      Amount
+              {status === "REJECTED" &&
+                request.remarks && (
+                  <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950/30">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-red-700 dark:text-red-400">
+                      Rejection Reason
                     </p>
 
-                    <p className="mt-1 font-bold text-slate-900">
+                    <p className="mt-1 text-sm text-red-700 dark:text-red-400">
+                      {request.remarks}
+                    </p>
+                  </div>
+                )}
+
+              {/* PENDING */}
+
+              {status === "PENDING" && (
+                <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
+                  <p className="text-sm font-medium text-amber-800 dark:text-amber-400">
+                    Waiting for admin verification.
+                  </p>
+
+                  <p className="mt-1 text-xs text-amber-700 dark:text-amber-500">
+                    Your contribution balance will be
+                    updated after approval.
+                  </p>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* DESKTOP */}
+
+      <div className="hidden overflow-x-auto md:block">
+        <table className="min-w-[850px] w-full">
+          <thead className="bg-slate-50 dark:bg-slate-800/60">
+            <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              <th className="px-5 py-4">
+                Request
+              </th>
+
+              <th className="px-5 py-4">
+                Amount
+              </th>
+
+              <th className="px-5 py-4">
+                Payment Date
+              </th>
+
+              <th className="px-5 py-4">
+                Status
+              </th>
+
+              <th className="px-5 py-4">
+                Contribution Months
+              </th>
+            </tr>
+          </thead>
+
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            {filteredRequests.map((request) => {
+              const status = String(
+                request.status || ""
+              ).toUpperCase();
+
+              const months = getCoveredMonths(request);
+
+              return (
+                <tr
+                  key={request.id}
+                  className="transition hover:bg-slate-50 dark:hover:bg-slate-800/40"
+                >
+                  <td className="px-5 py-5">
+                    <p className="font-semibold text-slate-900 dark:text-white">
+                      #{request.id}
+                    </p>
+
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                      {formatDate(
+                        request.createdAt
+                      )}
+                    </p>
+                  </td>
+
+                  <td className="px-5 py-5">
+                    <p className="font-bold text-slate-900 dark:text-white">
                       {formatCurrency(
                         request.amount
                       )}
                     </p>
-                  </div>
+                  </td>
 
-                  <div className="rounded-xl bg-slate-50 p-4">
-                    <p className="text-xs uppercase tracking-wide text-slate-400">
-                      Payment Date
-                    </p>
-
-                    <p className="mt-1 font-semibold text-slate-900">
+                  <td className="px-5 py-5">
+                    <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
                       {formatDate(
                         request.paymentDate
                       )}
                     </p>
-                  </div>
+                  </td>
 
-                  <div className="rounded-xl bg-slate-50 p-4">
-                    <p className="text-xs uppercase tracking-wide text-slate-400">
-                      Reference
-                    </p>
-
-                    <p className="mt-1 truncate font-semibold text-slate-900">
-                      {request.transactionReference ||
-                        "—"}
-                    </p>
-                  </div>
-
-                </div>
-
-                {/* PROOF */}
-
-                <div className="mt-4 flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
-
-                  <div>
-                    <p className="text-sm font-medium text-slate-700">
-                      Payment Proof
-                    </p>
-
-                    {request.proofImage ? (
-                      <p className="mt-1 text-xs font-medium text-emerald-600">
-                        ✓ Receipt uploaded
-                      </p>
-                    ) : (
-                      <p className="mt-1 text-xs text-slate-400">
-                        No receipt uploaded
-                      </p>
-                    )}
-                  </div>
-
-                  {request.proofImage && (
-                    <a
-                      href={`${API_BASE}/uploads/payment-proofs/${request.proofImage}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex w-fit items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
+                  <td className="px-5 py-5">
+                    <span
+                      className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${getStatusClasses(
+                        status
+                      )}`}
                     >
-                      View Payment Proof
-                    </a>
-                  )}
+                      {getStatusLabel(status)}
+                    </span>
 
-                </div>
+                    {status === "REJECTED" &&
+                      request.remarks && (
+                        <p className="mt-2 max-w-[220px] text-xs text-red-600 dark:text-red-400">
+                          {request.remarks}
+                        </p>
+                      )}
+                  </td>
 
-                {/* REJECTED */}
+                  <td className="px-5 py-5">
+                    {status === "APPROVED" ? (
+                      months.length > 0 ? (
+                        <div className="space-y-1">
+                          {months.map((month) => (
+                            <div
+                              key={`${month.year}-${month.monthNumber}`}
+                              className="text-sm"
+                            >
+                              <span className="font-medium text-slate-800 dark:text-slate-200">
+                                {getMonthName(
+                                  month.monthNumber
+                                )}{" "}
+                                {month.year}
+                              </span>
 
-                {request.status ===
-                  "REJECTED" &&
-                  request.remarks && (
-                    <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4">
-
-                      <p className="text-sm font-bold text-red-800">
-                        Rejection Reason
-                      </p>
-
-                      <p className="mt-1 text-sm text-red-700">
-                        {request.remarks}
-                      </p>
-
-                    </div>
-                  )}
-
-                {/* APPROVED */}
-
-                {request.status ===
-                  "APPROVED" && (
-                    <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-
-                      <p className="text-sm font-semibold text-emerald-800">
-                        ✓ Payment verified successfully
-                      </p>
-
-                      <p className="mt-1 text-xs text-emerald-700">
-                        All selected contribution months
-                        have been recorded.
-                      </p>
-
-                    </div>
-                  )}
-
-                {/* PENDING */}
-
-                {request.status ===
-                  "PENDING" && (
-                    <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
-
-                      <p className="text-sm font-semibold text-amber-800">
-                        ◷ Awaiting verification
-                      </p>
-
-                      <p className="mt-1 text-xs text-amber-700">
-                        The Treasurer will review your
-                        payment and verify the transaction.
-                      </p>
-
-                    </div>
-                  )}
-
-              </div>
-            );
-          })
-        )}
-
+                              <span className="ml-2 text-xs text-slate-500 dark:text-slate-400">
+                                {formatCurrency(
+                                  month.amount
+                                )}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-slate-400">
+                          No months recorded
+                        </span>
+                      )
+                    ) : (
+                      <span className="text-xs text-slate-400">
+                        Allocated after approval
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );

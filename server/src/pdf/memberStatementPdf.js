@@ -33,8 +33,10 @@ const monthNames = [
 // HELPERS
 // ======================================================
 
+const NAIRA = "\u20A6";
+
 const formatCurrency = (amount) => {
-  return `₦${Number(amount ?? 0).toLocaleString(
+  return `${NAIRA}${Number(amount ?? 0).toLocaleString(
     "en-NG",
     {
       minimumFractionDigits: 2,
@@ -248,13 +250,13 @@ export const generateMemberStatementPDF = async (
 
     const regularFont =
       fs.existsSync(FONT_REGULAR)
-        ? FONT_REGULAR
-        : "Helvetica";
+      ? FONT_REGULAR
+      : "C:/Windows/Fonts/arial.ttf";
 
     const boldFont =
       fs.existsSync(FONT_BOLD)
-        ? FONT_BOLD
-        : "Helvetica-Bold";
+      ? FONT_BOLD
+      : "C:/Windows/Fonts/arialbd.ttf";
 
     // ==================================================
     // COLORS

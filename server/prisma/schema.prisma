@@ -7,6 +7,30 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Organization {
+  id        Int      @id @default(autoincrement())
+  name      String
+  slug      String   @unique
+  logo      String?
+  phone     String?
+  email     String?
+  address   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  admins          Admin[]
+  members         Member[]
+  contributions   Contribution[]
+  expenses        Expense[]
+  setting         Setting?
+  announcements   Announcement[]
+  notifications   Notification[]
+  paymentRequests PaymentRequest[]
+
+  @@index([isActive])
+}
+
 model Admin {
   id               Int              @id @default(autoincrement())
   fullName         String
@@ -19,27 +43,35 @@ model Admin {
   announcements    Announcement[]
   notifications    Notification[]
   reviewedPayments PaymentRequest[]
+  organization     Organization?    @relation(fields: [organizationId], references: [id])
+  organizationId   Int?
+
+  @@index([organizationId])
 }
 
 model Member {
-  id                     Int              @id @default(autoincrement())
-  fullName               String
-  phone                  String?
-  email                  String?          @unique
-  createdAt              DateTime         @default(now())
-  address                String?
-  status                 String           @default("ACTIVE")
-  updatedAt              DateTime         @updatedAt
-  password               String?
-  contributionStartDate  DateTime?
+  id                    Int       @id @default(autoincrement())
+  fullName              String
+  phone                 String?
+  email                 String?   @unique
+  createdAt             DateTime  @default(now())
+  address               String?
+  status                String    @default("ACTIVE")
+  updatedAt             DateTime  @updatedAt
+  password              String?
+  contributionStartDate DateTime?
 
-  contributions          Contribution[]
-  notifications          Notification[]
-  paymentRequests        PaymentRequest[]
-  passwordResets         MemberPasswordReset[]
+  contributions   Contribution[]
+  notifications   Notification[]
+  paymentRequests PaymentRequest[]
+  passwordResets  MemberPasswordReset[]
+  organization    Organization?         @relation(fields: [organizationId], references: [id])
+  organizationId  Int?
 
   @@index([status])
+  @@index([organizationId])
 }
+
 model MemberPasswordReset {
   id        Int      @id @default(autoincrement())
   token     String   @unique
@@ -52,104 +84,118 @@ model MemberPasswordReset {
   @@index([memberId])
   @@index([expiresAt])
 }
+
 model Contribution {
-  id          Int                @id @default(autoincrement())
-  year        Int
-  amount      Float
-  memberId    Int
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
-  monthNumber Int
-  paymentDate DateTime           @default(now())
-  status      ContributionStatus @default(PAID)
-  member      Member             @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  id             Int                @id @default(autoincrement())
+  year           Int
+  amount         Float
+  memberId       Int
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  monthNumber    Int
+  paymentDate    DateTime           @default(now())
+  status         ContributionStatus @default(PAID)
+  member         Member             @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  organization   Organization?      @relation(fields: [organizationId], references: [id])
+  organizationId Int?
 
   @@unique([memberId, monthNumber, year])
   @@index([memberId])
   @@index([year, monthNumber])
+  @@index([organizationId])
 }
 
 model Expense {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String?
-  category    String
-  amount      Float
-  expenseDate DateTime
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             Int           @id @default(autoincrement())
+  title          String
+  description    String?
+  category       String
+  amount         Float
+  expenseDate    DateTime      @default(now())
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  organizationId Int?
 
   @@index([expenseDate])
+  @@index([organizationId])
 }
 
 model Setting {
-  id                        Int      @id @default(autoincrement())
-  associationName           String
-  associationLogo           String?
+  id             Int          @id @default(autoincrement())
+  organizationId Int          @unique
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  // Contribution configuration
+  associationName String
+  associationLogo String?
+
   monthlyContributionAmount Float
-  contributionStartMonth    Int      @default(12)
-  contributionStartYear     Int      @default(2024)
+  contributionStartMonth    Int   @default(12)
+  contributionStartYear     Int   @default(2024)
 
-  currency                  String   @default("NGN")
+  currency String @default("NGN")
 
-  // Financial year configuration
-  financialYearStart        Int
-  financialYearEnd          Int
+  financialYearStart Int
+  financialYearEnd   Int
 
-  meetingDay                String?
-  meetingTime               String?
-  meetingVenue              String?
+  meetingDay   String?
+  meetingTime  String?
+  meetingVenue String?
 
-  chairmanName              String?
-  secretaryName             String?
-  treasurerName             String?
+  chairmanName  String?
+  secretaryName String?
+  treasurerName String?
 
-  phone                     String?
-  email                     String?
-  website                   String?
-  address                   String?
+  phone   String?
+  email   String?
+  website String?
+  address String?
 
-  receiptPrefix             String   @default("RC")
-  contributionPrefix        String   @default("CON")
-  expensePrefix             String   @default("EXP")
+  receiptPrefix      String @default("RC")
+  contributionPrefix String @default("CON")
+  expensePrefix      String @default("EXP")
 
-  createdAt                 DateTime @default(now())
-  updatedAt                 DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  accountName               String?
-  accountNumber             String?
-  bankName                  String?
+  accountName   String?
+  accountNumber String?
+  bankName      String?
 }
 
 model Announcement {
-  id          Int      @id @default(autoincrement())
-  title       String
-  message     String
-  createdById Int
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  createdBy   Admin    @relation(fields: [createdById], references: [id])
+  id             Int           @id @default(autoincrement())
+  title          String
+  message        String
+  createdById    Int
+  isActive       Boolean       @default(true)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  createdBy      Admin         @relation(fields: [createdById], references: [id])
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  organizationId Int?
 
   @@index([createdById])
+  @@index([organizationId])
 }
 
 model Notification {
-  id          Int              @id @default(autoincrement())
-  title       String
-  message     String
-  type        NotificationType @default(GENERAL)
-  memberId    Int?
-  createdById Int
-  isRead      Boolean          @default(false)
-  createdAt   DateTime         @default(now())
-  createdBy   Admin            @relation(fields: [createdById], references: [id])
-  member      Member?          @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  id             Int              @id @default(autoincrement())
+  title          String
+  message        String
+  type           NotificationType @default(GENERAL)
+  memberId       Int?
+  createdById    Int
+  isRead         Boolean          @default(false)
+  createdAt      DateTime         @default(now())
+  createdBy      Admin            @relation(fields: [createdById], references: [id])
+  member         Member?          @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  organization   Organization?    @relation(fields: [organizationId], references: [id])
+  organizationId Int?
 
   @@index([memberId])
   @@index([createdById])
+  @@index([organizationId])
 }
 
 model PaymentRequest {
@@ -171,9 +217,12 @@ model PaymentRequest {
   member               Member                @relation(fields: [memberId], references: [id], onDelete: Cascade)
   reviewedBy           Admin?                @relation(fields: [reviewedById], references: [id])
   months               PaymentRequestMonth[]
+  organization         Organization?         @relation(fields: [organizationId], references: [id])
+  organizationId       Int?
 
   @@index([memberId])
   @@index([status])
+  @@index([organizationId])
 }
 
 model PaymentRequestMonth {

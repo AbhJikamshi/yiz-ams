@@ -8,7 +8,7 @@ import {
   remove,
 } from "../controllers/expenseController.js";
 
-import protect from "../middlewares/authMiddleware.js";
+import protect from "../middlewares/adminAuthMiddleware.js";
 import authorize from "../middlewares/authorize.js";
 import validateExpense from "../middlewares/expenseValidation.js";
 

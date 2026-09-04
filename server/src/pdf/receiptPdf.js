@@ -16,8 +16,10 @@ const FONT_BOLD = "C:/Windows/Fonts/segoeuib.ttf";
 // HELPERS
 // ======================================================
 
+const NAIRA = "\u20A6";
+
 const currency = (amount) => {
-  return `₦${Number(amount ?? 0).toLocaleString("en-NG", {
+  return `${NAIRA}${Number(amount ?? 0).toLocaleString("en-NG", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
@@ -150,17 +152,13 @@ export const generateReceiptPDF = async (
   // FONTS
   // ====================================================
 
-  const regularFont = fs.existsSync(
-    FONT_REGULAR
-  )
+  const regularFont = fs.existsSync(FONT_REGULAR)
     ? FONT_REGULAR
-    : "Helvetica";
+    : "C:/Windows/Fonts/arial.ttf";
 
-  const boldFont = fs.existsSync(
-    FONT_BOLD
-  )
+  const boldFont = fs.existsSync(FONT_BOLD)
     ? FONT_BOLD
-    : "Helvetica-Bold";
+    : "C:/Windows/Fonts/arialbd.ttf";
 
   // ====================================================
   // COLORS

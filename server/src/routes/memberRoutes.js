@@ -13,23 +13,32 @@ import {
   validateMember,
   validateMemberUpdate,
 } from "../middlewares/memberValidation.js";
-import authMiddleware from "../middlewares/authMiddleware.js";
+
+import adminAuthMiddleware from "../middlewares/adminAuthMiddleware.js";
 import authorize from "../middlewares/authorize.js";
 
 const router = express.Router();
 
 // ===============================
-// Public Routes
-// ===============================
-router.get("/", getMembers);
-router.get("/:id", getMemberById);
-
-// ===============================
 // Protected Routes (ADMIN only)
 // ===============================
+router.get(
+  "/",
+  adminAuthMiddleware,
+  authorize("ADMIN"),
+  getMembers
+);
+
+router.get(
+  "/:id",
+  adminAuthMiddleware,
+  authorize("ADMIN"),
+  getMemberById
+);
+
 router.post(
   "/",
-  authMiddleware,
+  adminAuthMiddleware,
   authorize("ADMIN"),
   validateMember,
   createMember
@@ -37,7 +46,7 @@ router.post(
 
 router.put(
   "/:id",
-  authMiddleware,
+  adminAuthMiddleware,
   authorize("ADMIN"),
   validateMemberUpdate,
   updateMember
@@ -45,15 +54,16 @@ router.put(
 
 router.delete(
   "/:id",
-  authMiddleware,
+  adminAuthMiddleware,
   authorize("ADMIN"),
   deleteMember
 );
 
 router.patch(
   "/:id/reset-password",
-  authMiddleware,
+  adminAuthMiddleware,
   authorize("ADMIN"),
   resetMemberPassword
 );
+
 export default router;

@@ -2,7 +2,7 @@ import express from "express";
 import * as paymentRequestController from "../controllers/paymentRequestController.js";
 
 import memberAuthMiddleware from "../middlewares/memberAuthMiddleware.js";
-import authMiddleware from "../middlewares/authMiddleware.js";
+import authMiddleware from "../middlewares/adminAuthMiddleware.js";
 
 const router = express.Router();
 

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../../services/api";
+import settingsService from "../../services/settingsService";
 
 const API_BASE =
   import.meta.env.VITE_API_URL?.replace(/\/api$/, "") ||
@@ -217,11 +218,32 @@ const Toast = ({ type, message, onClose }) => {
 PAYMENT VERIFICATION
 ========================================
 */
+const getExpectedMonthCount = (
+  amount,
+  monthlyAmount
+) => {
+  const paymentAmount = Number(amount || 0);
+  const contributionAmount = Number(monthlyAmount || 0);
+
+  if (
+    paymentAmount <= 0 ||
+    contributionAmount <= 0
+  ) {
+    return 0;
+  }
+
+  return Math.round(
+    paymentAmount / contributionAmount
+  );
+};
 
 const PaymentVerification = () => {
   const [requests, setRequests] = useState([]);
 
-  const [loading, setLoading] = useState(true);
+    const [monthlyContributionAmount, setMonthlyContributionAmount] =
+    useState(0);
+
+    const [loading, setLoading] = useState(true);
 
   const [refreshing, setRefreshing] =
     useState(false);
@@ -284,6 +306,7 @@ const PaymentVerification = () => {
   ========================================
   */
 
+
   const fetchPendingRequests = async (
     showLoader = true
   ) => {
@@ -328,6 +351,31 @@ const PaymentVerification = () => {
     fetchPendingRequests();
   }, []);
 
+  useEffect(() => {
+  const loadMonthlyContribution = async () => {
+    try {
+      const res = await settingsService.getSettings();
+
+      const settingsData =
+        res?.data?.data ||
+        res?.data ||
+        {};
+
+      setMonthlyContributionAmount(
+        Number(
+          settingsData.monthlyContributionAmount || 0
+        )
+      );
+    } catch (error) {
+      console.error(
+        "Failed to load monthly contribution setting:",
+        error
+      );
+    }
+  };
+
+  loadMonthlyContribution();
+}, []);
   /*
   ========================================
   SUMMARY
@@ -764,19 +812,25 @@ const PaymentVerification = () => {
               </p>
 
               <p className="mt-1 text-sm font-semibold leading-6 text-slate-800">
-                {formatPaymentMonths(
-                  item.months
-                )}
+                {Array.isArray(item.months) &&
+                  item.months.length > 0
+                    ? formatPaymentMonths(item.months)
+                    : `${getExpectedMonthCount(
+                        item.amount,
+                        monthlyContributionAmount
+                      )} months expected`}
               </p>
 
               <p className="mt-1 text-xs text-slate-500">
-                {Array.isArray(item.months)
-                  ? `${item.months.length} month${
-                      item.months.length !== 1
-                        ? "s"
-                        : ""
-                    }`
-                  : "0 months"}
+                {Array.isArray(item.months) &&
+                  item.months.length > 0
+                    ? `${item.months.length} month${
+                        item.months.length !== 1 ? "s" : ""
+                      }`
+                    : `${getExpectedMonthCount(
+                        item.amount,
+                        monthlyContributionAmount
+                      )} months expected`}
 
                 {" · Submitted "}
 
@@ -1190,11 +1244,13 @@ const PaymentVerification = () => {
 
                     <p className="mt-1 font-semibold text-slate-900">
 
-                      {Array.isArray(
-                        approveModal.months
-                      )
+                      {Array.isArray(approveModal.months) &&
+                      approveModal.months.length > 0
                         ? approveModal.months.length
-                        : 0}
+                        : getExpectedMonthCount(
+                            approveModal.amount,
+                            monthlyContributionAmount
+                          )}
 
                       {" month"}
 

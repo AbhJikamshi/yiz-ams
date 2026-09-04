@@ -1,6 +1,6 @@
 import express from "express";
 
-import authMiddleware from "../middlewares/authMiddleware.js";
+import authMiddleware from "../middlewares/adminAuthMiddleware.js";
 import authorize from "../middlewares/authorize.js";
 import announcementValidation from "../middlewares/announcementValidation.js";
 

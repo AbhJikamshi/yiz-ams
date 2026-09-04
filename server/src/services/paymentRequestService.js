@@ -1,9 +1,5 @@
 import prisma from "../config/prisma.js";
 
-// ============================================================
-// MONTH NAMES
-// ============================================================
-
 const MONTH_NAMES = [
   "",
   "January",
@@ -20,9 +16,17 @@ const MONTH_NAMES = [
   "December",
 ];
 
+const DEFAULT_CONTRIBUTION_START_MONTH = 12;
+const DEFAULT_CONTRIBUTION_START_YEAR = 2024;
+
 // ============================================================
-// HELPER: FORMAT MONTH
+// HELPERS
 // ============================================================
+
+const toNumber = (value) => {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : 0;
+};
 
 const formatMonth = (monthNumber, year) => {
   const monthName =
@@ -31,178 +35,461 @@ const formatMonth = (monthNumber, year) => {
   return `${monthName} ${year}`;
 };
 
-// ============================================================
-// MEMBER SUBMITS PAYMENT REQUEST
-// ============================================================
+const getMonthKey = (year, monthNumber) => {
+  return `${Number(year)}-${String(
+    Number(monthNumber)
+  ).padStart(2, "0")}`;
+};
 
-export const createPaymentRequest = async (
-  memberId,
-  data
+const getMonthLabel = (monthNumber, year) => {
+  return formatMonth(monthNumber, year);
+};
+
+const getMonthsBetween = (
+  startYear,
+  startMonth,
+  endYear,
+  endMonth
 ) => {
-  const months = Array.isArray(data.months)
-    ? data.months
-    : [];
+  const months = [];
 
-  // ----------------------------------------------------------
-  // 1. At least one month is required
-  // ----------------------------------------------------------
+  let year = Number(startYear);
+  let month = Number(startMonth);
 
-  if (months.length === 0) {
+  const finalYear = Number(endYear);
+  const finalMonth = Number(endMonth);
+
+  while (
+    year < finalYear ||
+    (year === finalYear && month <= finalMonth)
+  ) {
+    months.push({
+      year,
+      monthNumber: month,
+      key: getMonthKey(year, month),
+      month: getMonthLabel(month, year),
+    });
+
+    month += 1;
+
+    if (month > 12) {
+      month = 1;
+      year += 1;
+    }
+  }
+
+  return months;
+};
+
+const getCurrentPeriod = () => {
+  const now = new Date();
+
+  return {
+    year: now.getFullYear(),
+    monthNumber: now.getMonth() + 1,
+  };
+};
+
+const getContributionStart = (settings) => {
+  const month = Number(
+    settings?.contributionStartMonth ||
+      DEFAULT_CONTRIBUTION_START_MONTH
+  );
+
+  const year = Number(
+    settings?.contributionStartYear ||
+      DEFAULT_CONTRIBUTION_START_YEAR
+  );
+
+  return {
+    monthNumber:
+      month >= 1 && month <= 12
+        ? month
+        : DEFAULT_CONTRIBUTION_START_MONTH,
+
+    year:
+      year >= 2000
+        ? year
+        : DEFAULT_CONTRIBUTION_START_YEAR,
+  };
+};
+
+// ============================================================
+// GET MEMBER CONTRIBUTION PERIOD
+// ============================================================
+
+const getMemberDueMonths = (member, settings) => {
+  const currentPeriod = getCurrentPeriod();
+
+  const contributionStart =
+    getContributionStart(settings);
+
+  let effectiveStartYear =
+    contributionStart.year;
+
+  let effectiveStartMonth =
+    contributionStart.monthNumber;
+
+  if (member.contributionStartDate) {
+    const memberStartDate =
+      new Date(member.contributionStartDate);
+
+    effectiveStartYear =
+      memberStartDate.getFullYear();
+
+    effectiveStartMonth =
+      memberStartDate.getMonth() + 1;
+  } else {
+    const memberCreatedAt =
+      new Date(member.createdAt);
+
+    const memberYear =
+      memberCreatedAt.getFullYear();
+
+    const memberMonth =
+      memberCreatedAt.getMonth() + 1;
+
+    const memberJoinedAfterStart =
+      memberYear > contributionStart.year ||
+      (
+        memberYear === contributionStart.year &&
+        memberMonth > contributionStart.monthNumber
+      );
+
+    if (memberJoinedAfterStart) {
+      effectiveStartYear = memberYear;
+      effectiveStartMonth = memberMonth;
+    }
+  }
+
+  if (
+    effectiveStartYear > currentPeriod.year ||
+    (
+      effectiveStartYear === currentPeriod.year &&
+      effectiveStartMonth > currentPeriod.monthNumber
+    )
+  ) {
+    return [];
+  }
+
+  return getMonthsBetween(
+    effectiveStartYear,
+    effectiveStartMonth,
+    currentPeriod.year,
+    currentPeriod.monthNumber
+  );
+};
+
+// ============================================================
+// GET MEMBER PAYMENT SUMMARY
+// ============================================================
+
+const getMemberPaymentSummary = async (
+  memberId,
+  organizationId
+) => {
+  const member = await prisma.member.findFirst({
+    where: {
+      id: Number(memberId),
+      ...(organizationId
+        ? {
+            organizationId: Number(organizationId),
+          }
+        : {}),
+    },
+  });
+
+  if (!member) {
+    const error = new Error("Member not found.");
+    error.status = 404;
+    throw error;
+  }
+
+  const settings = await prisma.setting.findFirst({
+    where: organizationId
+      ? {
+          organizationId: Number(organizationId),
+        }
+      : undefined,
+    orderBy: {
+      id: "asc",
+    },
+  });
+
+  const monthlyAmount = toNumber(
+    settings?.monthlyContributionAmount
+  );
+
+  if (monthlyAmount <= 0) {
     const error = new Error(
-      "Please select at least one contribution month."
+      "The monthly contribution amount has not been configured."
     );
-
     error.status = 400;
     throw error;
   }
 
-  // ----------------------------------------------------------
-  // 2. Validate total payment amount
-  // ----------------------------------------------------------
+  const dueMonths = getMemberDueMonths(
+    member,
+    settings
+  );
 
-  const requestAmount = Number(data.amount);
+  const contributions =
+    await prisma.contribution.findMany({
+      where: {
+        memberId: Number(memberId),
+        ...(organizationId
+          ? {
+              organizationId: Number(organizationId),
+            }
+          : {}),
+      },
+      select: {
+        id: true,
+        year: true,
+        monthNumber: true,
+        amount: true,
+        status: true,
+      },
+    });
+
+  const paidMap = new Map();
+
+  for (const contribution of contributions) {
+    const status = String(
+      contribution.status || ""
+    ).toUpperCase();
+
+    if (
+      status !== "PAID" &&
+      status !== "APPROVED"
+    ) {
+      continue;
+    }
+
+    const key = getMonthKey(
+      contribution.year,
+      contribution.monthNumber
+    );
+
+    paidMap.set(key, contribution);
+  }
+
+  const outstandingMonths = [];
+
+  let outstandingAmount = 0;
+
+  for (const dueMonth of dueMonths) {
+    const paid = paidMap.get(dueMonth.key);
+
+    const paidAmount = paid
+      ? toNumber(paid.amount)
+      : 0;
+
+    const remaining =
+      Math.max(
+        monthlyAmount - paidAmount,
+        0
+      );
+
+    if (remaining > 0.01) {
+      outstandingAmount += remaining;
+
+      outstandingMonths.push({
+        year: dueMonth.year,
+        monthNumber: dueMonth.monthNumber,
+        month: dueMonth.month,
+        amount: remaining,
+      });
+    }
+  }
+
+  return {
+    monthlyContributionAmount: monthlyAmount,
+    outstandingAmount,
+    outstandingMonths,
+    totalOutstandingMonths:
+      outstandingMonths.length,
+  };
+};
+
+// ============================================================
+// CREATE PAYMENT REQUEST
+//
+// IMPORTANT:
+// Months are NOT assigned here.
+// They are assigned only after admin approval.
+// ============================================================
+
+export const createPaymentRequest = async (
+  memberId,
+  data,
+  organizationId
+) => {
+  const parsedMemberId = Number(memberId);
+
+  if (
+    !Number.isInteger(parsedMemberId) ||
+    parsedMemberId <= 0
+  ) {
+    const error = new Error(
+      "Invalid member."
+    );
+    error.status = 400;
+    throw error;
+  }
+
+  const summary =
+    await getMemberPaymentSummary(
+      parsedMemberId,
+      organizationId
+    );
+
+  const monthlyAmount =
+    summary.monthlyContributionAmount;
+
+  const outstandingAmount =
+    summary.outstandingAmount;
+
+  const requestAmount = Number(
+    data.amount
+  );
+
+  // ----------------------------------------------------------
+  // Amount validation
+  // ----------------------------------------------------------
 
   if (
     !Number.isFinite(requestAmount) ||
     requestAmount <= 0
   ) {
     const error = new Error(
-      "Please provide a valid payment amount."
+      "Please enter a valid payment amount."
     );
-
     error.status = 400;
     throw error;
   }
-
-  // ----------------------------------------------------------
-  // 3. Clean selected months
-  // ----------------------------------------------------------
-
-  const cleanedMonths = months.map((month) => ({
-    monthNumber: Number(month.monthNumber),
-    year: Number(month.year),
-  }));
-
-  // ----------------------------------------------------------
-  // 4. Validate every month
-  // ----------------------------------------------------------
-
-  for (const month of cleanedMonths) {
-    if (
-      !Number.isInteger(month.monthNumber) ||
-      month.monthNumber < 1 ||
-      month.monthNumber > 12 ||
-      !Number.isInteger(month.year) ||
-      month.year < 2000
-    ) {
-      const error = new Error(
-        "One or more contribution months are invalid."
-      );
-
-      error.status = 400;
-      throw error;
-    }
-  }
-
-  // ----------------------------------------------------------
-  // 5. Prevent duplicate months inside same request
-  // ----------------------------------------------------------
-
-  const uniqueMonths = new Set(
-    cleanedMonths.map(
-      (month) =>
-        `${month.year}-${month.monthNumber}`
-    )
-  );
 
   if (
-    uniqueMonths.size !==
-    cleanedMonths.length
+    requestAmount < monthlyAmount
   ) {
     const error = new Error(
-      "The same contribution month cannot be selected more than once."
+      `Payment must be at least ${monthlyAmount.toLocaleString(
+        "en-NG"
+      )}.`
     );
-
     error.status = 400;
     throw error;
   }
 
-  // ----------------------------------------------------------
-  // 6. Calculate amount per month
-  // ----------------------------------------------------------
-
-  const monthlyAmount =
-    requestAmount / cleanedMonths.length;
+  const multiple =
+    requestAmount / monthlyAmount;
 
   if (
-    !Number.isFinite(monthlyAmount) ||
-    monthlyAmount <= 0
+    Math.abs(multiple - Math.round(multiple)) >
+    0.000001
   ) {
     const error = new Error(
-      "Unable to calculate the contribution amount for the selected months."
+      `Payment must be an exact multiple of the monthly contribution (${monthlyAmount.toLocaleString(
+        "en-NG"
+      )}).`
     );
+    error.status = 400;
+    throw error;
+  }
 
+  if (
+    requestAmount >
+    outstandingAmount + 0.01
+  ) {
+    const error = new Error(
+      `Payment cannot exceed your outstanding balance of ${outstandingAmount.toLocaleString(
+        "en-NG",
+        {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }
+      )}.`
+    );
     error.status = 400;
     throw error;
   }
 
   // ----------------------------------------------------------
-  // 7. Check existing PAID contributions
+  // Only one pending request at a time
   // ----------------------------------------------------------
 
-  const existingContributions =
-    await prisma.contribution.findMany({
+  const existingPending =
+    await prisma.paymentRequest.findFirst({
       where: {
-        memberId,
-        OR: cleanedMonths.map((month) => ({
-          monthNumber: month.monthNumber,
-          year: month.year,
-        })),
-      },
-
-      select: {
-        monthNumber: true,
-        year: true,
+        memberId: parsedMemberId,
+        status: "PENDING",
+        ...(organizationId
+          ? {
+              organizationId:
+                Number(organizationId),
+            }
+          : {}),
       },
     });
 
-  if (existingContributions.length > 0) {
-    const alreadyPaid =
-      existingContributions
-        .map((item) =>
-          formatMonth(
-            item.monthNumber,
-            item.year
-          )
-        )
-        .join(", ");
-
+  if (existingPending) {
     const error = new Error(
-      `Contribution for ${alreadyPaid} has already been recorded.`
+      "You already have a payment waiting for admin verification."
     );
-
     error.status = 400;
     throw error;
   }
 
   // ----------------------------------------------------------
-  // 8. Check existing PENDING payment requests
+  // Validate payment date
   // ----------------------------------------------------------
 
-  const pendingRequests =
-    await prisma.paymentRequest.findMany({
-      where: {
-        memberId,
+  const paymentDate = data.paymentDate
+    ? new Date(data.paymentDate)
+    : new Date();
+
+  if (Number.isNaN(paymentDate.getTime())) {
+    const error = new Error(
+      "Invalid payment date."
+    );
+    error.status = 400;
+    throw error;
+  }
+
+  // ----------------------------------------------------------
+  // Create request
+  //
+  // No months.
+  // No proof image.
+  // ----------------------------------------------------------
+
+  const paymentRequest =
+    await prisma.paymentRequest.create({
+      data: {
+        memberId: parsedMemberId,
+
+        amount: requestAmount,
+
+        transactionReference:
+          data.transactionReference?.trim() ||
+          null,
+
+        paymentDate,
+
+        proofImage: null,
+
+        bankName: null,
+        accountName: null,
+        accountNumber: null,
+
         status: "PENDING",
 
-        months: {
-          some: {
-            OR: cleanedMonths.map((month) => ({
-              monthNumber: month.monthNumber,
-              year: month.year,
-            })),
-          },
-        },
+        ...(organizationId
+          ? {
+              organizationId:
+                Number(organizationId),
+            }
+          : {}),
       },
 
       include: {
@@ -210,112 +497,26 @@ export const createPaymentRequest = async (
       },
     });
 
-  if (pendingRequests.length > 0) {
-    const pendingMonths = [];
-
-    for (const request of pendingRequests) {
-      for (const month of request.months) {
-        const exists = cleanedMonths.some(
-          (selected) =>
-            selected.monthNumber ===
-              month.monthNumber &&
-            selected.year === month.year
-        );
-
-        if (exists) {
-          pendingMonths.push(
-            formatMonth(
-              month.monthNumber,
-              month.year
-            )
-          );
-        }
-      }
-    }
-
-    const uniquePendingMonths = [
-      ...new Set(pendingMonths),
-    ];
-
-    const error = new Error(
-      `One or more selected contribution months already have a pending payment request: ${uniquePendingMonths.join(
-        ", "
-      )}.`
-    );
-
-    error.status = 400;
-    throw error;
-  }
-
-  // ----------------------------------------------------------
-  // 9. Create payment request
-  // ----------------------------------------------------------
-
-  const paymentRequest =
-    await prisma.paymentRequest.create({
-      data: {
-        memberId,
-
-        amount: requestAmount,
-
-        bankName:
-          data.bankName || null,
-
-        accountName:
-          data.accountName || null,
-
-        accountNumber:
-          data.accountNumber || null,
-
-        transactionReference:
-          data.transactionReference || null,
-
-        paymentDate: new Date(
-          data.paymentDate
-        ),
-
-        proofImage:
-          data.proofImage || null,
-
-        months: {
-          create: cleanedMonths.map(
-            (month) => ({
-              year: month.year,
-              monthNumber:
-                month.monthNumber,
-              amount: monthlyAmount,
-            })
-          ),
-        },
-      },
-
-      include: {
-        months: {
-          orderBy: [
-            {
-              year: "asc",
-            },
-            {
-              monthNumber: "asc",
-            },
-          ],
-        },
-      },
-    });
-
   return paymentRequest;
 };
 
 // ============================================================
-// MEMBER VIEWS OWN PAYMENT REQUESTS
+// GET MEMBER PAYMENT REQUESTS
 // ============================================================
 
 export const getMemberPaymentRequests = async (
-  memberId
+  memberId,
+  organizationId
 ) => {
   return await prisma.paymentRequest.findMany({
     where: {
-      memberId,
+      memberId: Number(memberId),
+      ...(organizationId
+        ? {
+            organizationId:
+              Number(organizationId),
+          }
+        : {}),
     },
 
     include: {
@@ -345,14 +546,50 @@ export const getMemberPaymentRequests = async (
 };
 
 // ============================================================
-// ADMIN / TREASURER VIEWS PENDING REQUESTS
+// GET MEMBER PAYMENT PAGE DATA
+// ============================================================
+
+export const getMemberPaymentPageData = async (
+  memberId,
+  organizationId
+) => {
+  const [
+    requests,
+    summary,
+  ] = await Promise.all([
+    getMemberPaymentRequests(
+      memberId,
+      organizationId
+    ),
+
+    getMemberPaymentSummary(
+      memberId,
+      organizationId
+    ),
+  ]);
+
+  return {
+    requests,
+    summary,
+  };
+};
+
+// ============================================================
+// GET PENDING PAYMENT REQUESTS
 // ============================================================
 
 export const getPendingPaymentRequests =
-  async () => {
+  async (organizationId) => {
     return await prisma.paymentRequest.findMany({
       where: {
         status: "PENDING",
+
+        ...(organizationId
+          ? {
+              organizationId:
+                Number(organizationId),
+            }
+          : {}),
       },
 
       include: {
@@ -392,158 +629,246 @@ export const getPendingPaymentRequests =
 
 // ============================================================
 // APPROVE PAYMENT REQUEST
+//
+// This is where automatic month allocation happens.
+// Oldest unpaid months are paid first.
 // ============================================================
 
 export const approvePaymentRequest = async (
   requestId,
-  adminId
+  adminId,
+  organizationId
 ) => {
   return await prisma.$transaction(
     async (tx) => {
-      // ------------------------------------------------------
-      // 1. Get payment request and months
-      // ------------------------------------------------------
-
       const request =
-        await tx.paymentRequest.findUnique({
+        await tx.paymentRequest.findFirst({
           where: {
             id: Number(requestId),
+            status: "PENDING",
+
+            ...(organizationId
+              ? {
+                  organizationId:
+                    Number(organizationId),
+                }
+              : {}),
           },
 
           include: {
-            months: {
-              orderBy: [
-                {
-                  year: "asc",
-                },
-                {
-                  monthNumber: "asc",
-                },
-              ],
-            },
+            member: true,
           },
         });
 
       if (!request) {
         const error = new Error(
-          "Payment request not found."
+          "Pending payment request not found."
         );
-
         error.status = 404;
         throw error;
       }
 
-      // ------------------------------------------------------
-      // 2. Make sure request is still pending
-      // ------------------------------------------------------
+      const settings =
+        await tx.setting.findFirst({
+          where: organizationId
+            ? {
+                organizationId:
+                  Number(organizationId),
+              }
+            : undefined,
 
-      if (request.status !== "PENDING") {
-        const error = new Error(
-          "Payment request has already been processed."
+          orderBy: {
+            id: "asc",
+          },
+        });
+
+      const monthlyAmount =
+        toNumber(
+          settings?.monthlyContributionAmount
         );
 
+      if (monthlyAmount <= 0) {
+        const error = new Error(
+          "The monthly contribution amount has not been configured."
+        );
         error.status = 400;
         throw error;
       }
-
-      // ------------------------------------------------------
-      // 3. Make sure months exist
-      // ------------------------------------------------------
-
-      if (
-        !request.months ||
-        request.months.length === 0
-      ) {
-        const error = new Error(
-          "This payment request has no contribution months."
-        );
-
-        error.status = 400;
-        throw error;
-      }
-
-      // ------------------------------------------------------
-      // 4. Calculate total of selected months
-      // ------------------------------------------------------
-
-      const monthsTotal =
-        request.months.reduce(
-          (total, month) =>
-            total +
-            Number(month.amount || 0),
-          0
-        );
 
       const requestAmount =
-        Number(request.amount || 0);
+        toNumber(request.amount);
 
-      // ------------------------------------------------------
-      // 5. Verify request amount
-      // ------------------------------------------------------
+      // --------------------------------------------------------
+      // Re-check amount rules at approval time
+      // --------------------------------------------------------
+
+      if (
+        requestAmount < monthlyAmount
+      ) {
+        const error = new Error(
+          "Payment amount is below the monthly contribution."
+        );
+        error.status = 400;
+        throw error;
+      }
+
+      const multiple =
+        requestAmount / monthlyAmount;
 
       if (
         Math.abs(
-          monthsTotal - requestAmount
-        ) > 0.01
+          multiple - Math.round(multiple)
+        ) > 0.000001
       ) {
         const error = new Error(
-          "Payment request amount does not match the selected contribution months."
+          "Payment amount is not an exact multiple of the monthly contribution."
         );
-
         error.status = 400;
         throw error;
       }
 
-      // ------------------------------------------------------
-      // 6. Check every requested month
-      //    for existing contributions
-      // ------------------------------------------------------
+      // --------------------------------------------------------
+      // Build due months
+      // --------------------------------------------------------
 
-      const alreadyRecorded = [];
+      const dueMonths =
+        getMemberDueMonths(
+          request.member,
+          settings
+        );
 
-      for (const month of request.months) {
-        const existingContribution =
-          await tx.contribution.findFirst({
-            where: {
-              memberId:
-                request.memberId,
+      // --------------------------------------------------------
+      // Get confirmed contributions
+      // --------------------------------------------------------
 
-              year: month.year,
+      const contributions =
+        await tx.contribution.findMany({
+          where: {
+            memberId:
+              request.memberId,
 
-              monthNumber:
-                month.monthNumber,
-            },
-          });
+            ...(organizationId
+              ? {
+                  organizationId:
+                    Number(organizationId),
+                }
+              : {}),
+          },
 
-        if (existingContribution) {
-          alreadyRecorded.push(
-            formatMonth(
-              month.monthNumber,
-              month.year
-            )
+          select: {
+            id: true,
+            year: true,
+            monthNumber: true,
+            amount: true,
+            status: true,
+          },
+        });
+
+      const paidMap = new Map();
+
+      for (const contribution of contributions) {
+        const status = String(
+          contribution.status || ""
+        ).toUpperCase();
+
+        if (
+          status !== "PAID" &&
+          status !== "APPROVED"
+        ) {
+          continue;
+        }
+
+        const key = getMonthKey(
+          contribution.year,
+          contribution.monthNumber
+        );
+
+        paidMap.set(key, contribution);
+      }
+
+      // --------------------------------------------------------
+      // Find oldest unpaid months
+      // --------------------------------------------------------
+
+      const unpaidMonths = [];
+
+      for (const dueMonth of dueMonths) {
+        const existing =
+          paidMap.get(dueMonth.key);
+
+        const paidAmount = existing
+          ? toNumber(existing.amount)
+          : 0;
+
+        const remaining =
+          Math.max(
+            monthlyAmount - paidAmount,
+            0
           );
+
+        if (remaining > 0.01) {
+          unpaidMonths.push({
+            year: dueMonth.year,
+            monthNumber:
+              dueMonth.monthNumber,
+            month: dueMonth.month,
+            amount: remaining,
+          });
         }
       }
 
-      if (alreadyRecorded.length > 0) {
-        const error = new Error(
-          `The following contribution month(s) have already been recorded: ${alreadyRecorded.join(
-            ", "
-          )}.`
+      const outstandingAmount =
+        unpaidMonths.reduce(
+          (total, month) =>
+            total + month.amount,
+          0
         );
 
+      if (
+        requestAmount >
+        outstandingAmount + 0.01
+      ) {
+        const error = new Error(
+          `Payment cannot exceed the member's current outstanding balance of ${outstandingAmount.toLocaleString(
+            "en-NG",
+            {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }
+          )}.`
+        );
         error.status = 400;
         throw error;
       }
 
-      // ------------------------------------------------------
-      // 7. Create one Contribution record
-      //    for EACH requested month
-      // ------------------------------------------------------
+      const monthsToAllocate = Math.round(
+        requestAmount / monthlyAmount
+      );
 
-      const contributions = [];
+      if (
+        unpaidMonths.length <
+        monthsToAllocate
+      ) {
+        const error = new Error(
+          "There are not enough unpaid contribution months to allocate this payment."
+        );
+        error.status = 400;
+        throw error;
+      }
 
-      for (const month of request.months) {
+      const selectedMonths =
+        unpaidMonths.slice(
+          0,
+          monthsToAllocate
+        );
+
+      // --------------------------------------------------------
+      // Create contribution records
+      // --------------------------------------------------------
+
+      const contributionsCreated = [];
+
+      for (const month of selectedMonths) {
         const contribution =
           await tx.contribution.create({
             data: {
@@ -555,25 +880,55 @@ export const approvePaymentRequest = async (
               monthNumber:
                 month.monthNumber,
 
-              amount: Number(
-                month.amount
-              ),
+              amount: monthlyAmount,
 
               paymentDate:
                 request.paymentDate,
 
               status: "PAID",
+
+              ...(organizationId
+                ? {
+                    organizationId:
+                      Number(
+                        organizationId
+                      ),
+                  }
+                : {}),
             },
           });
 
-        contributions.push(
+        contributionsCreated.push(
           contribution
         );
       }
 
-      // ------------------------------------------------------
-      // 8. Mark payment request APPROVED
-      // ------------------------------------------------------
+      // --------------------------------------------------------
+      // Record which months this request covered
+      // --------------------------------------------------------
+
+      await tx.paymentRequestMonth.createMany(
+        {
+          data: selectedMonths.map(
+            (month) => ({
+              paymentRequestId:
+                request.id,
+
+              year: month.year,
+
+              monthNumber:
+                month.monthNumber,
+
+              amount:
+                monthlyAmount,
+            })
+          ),
+        }
+      );
+
+      // --------------------------------------------------------
+      // Approve request
+      // --------------------------------------------------------
 
       const updatedRequest =
         await tx.paymentRequest.update({
@@ -584,9 +939,11 @@ export const approvePaymentRequest = async (
           data: {
             status: "APPROVED",
 
-            reviewedById: adminId,
+            reviewedById:
+              Number(adminId),
 
-            reviewedAt: new Date(),
+            reviewedAt:
+              new Date(),
           },
 
           include: {
@@ -603,15 +960,12 @@ export const approvePaymentRequest = async (
           },
         });
 
-      // ------------------------------------------------------
-      // 9. Notify member
-      // ------------------------------------------------------
-
-      const monthCount =
-        request.months.length;
+      // --------------------------------------------------------
+      // Notification
+      // --------------------------------------------------------
 
       const monthText =
-        request.months
+        selectedMonths
           .map((month) =>
             formatMonth(
               month.monthNumber,
@@ -625,9 +979,11 @@ export const approvePaymentRequest = async (
           memberId:
             request.memberId,
 
-          createdById: adminId,
+          createdById:
+            Number(adminId),
 
-          title: "Payment Approved",
+          title:
+            "Payment Approved",
 
           message: `Your payment of ₦${requestAmount.toLocaleString(
             "en-NG",
@@ -635,25 +991,25 @@ export const approvePaymentRequest = async (
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             }
-          )} covering ${monthCount} contribution ${
-            monthCount === 1
-              ? "month"
-              : "months"
-          } (${monthText}) has been verified and approved successfully.`,
+          )} has been verified and approved. It covers: ${monthText}.`,
 
           type: "PAYMENT",
+
+          ...(organizationId
+            ? {
+                organizationId:
+                  Number(organizationId),
+              }
+            : {}),
         },
       });
-
-      // ------------------------------------------------------
-      // 10. Return complete result
-      // ------------------------------------------------------
 
       return {
         paymentRequest:
           updatedRequest,
 
-        contributions,
+        contributions:
+          contributionsCreated,
       };
     }
   );
@@ -666,57 +1022,38 @@ export const approvePaymentRequest = async (
 export const rejectPaymentRequest = async (
   requestId,
   adminId,
-  remarks
+  remarks,
+  organizationId
 ) => {
-  // ----------------------------------------------------------
-  // 1. Find request
-  // ----------------------------------------------------------
-
   const request =
-    await prisma.paymentRequest.findUnique({
+    await prisma.paymentRequest.findFirst({
       where: {
         id: Number(requestId),
+        status: "PENDING",
+
+        ...(organizationId
+          ? {
+              organizationId:
+                Number(organizationId),
+            }
+          : {}),
       },
 
       include: {
-        months: {
-          orderBy: [
-            {
-              year: "asc",
-            },
-            {
-              monthNumber: "asc",
-            },
-          ],
-        },
+        member: true,
       },
     });
 
   if (!request) {
     const error = new Error(
-      "Payment request not found."
+      "Pending payment request not found."
     );
-
     error.status = 404;
     throw error;
   }
 
-  // ----------------------------------------------------------
-  // 2. Make sure request is pending
-  // ----------------------------------------------------------
-
-  if (request.status !== "PENDING") {
-    const error = new Error(
-      "Payment request has already been processed."
-    );
-
-    error.status = 400;
-    throw error;
-  }
-
-  // ----------------------------------------------------------
-  // 3. Update request
-  // ----------------------------------------------------------
+  const cleanRemarks =
+    remarks?.trim() || null;
 
   const updatedRequest =
     await prisma.paymentRequest.update({
@@ -727,12 +1064,14 @@ export const rejectPaymentRequest = async (
       data: {
         status: "REJECTED",
 
-        reviewedById: adminId,
+        reviewedById:
+          Number(adminId),
 
-        reviewedAt: new Date(),
+        reviewedAt:
+          new Date(),
 
         remarks:
-          remarks?.trim() || null,
+          cleanRemarks,
       },
 
       include: {
@@ -749,40 +1088,37 @@ export const rejectPaymentRequest = async (
       },
     });
 
-  // ----------------------------------------------------------
-  // 4. Build month information
-  // ----------------------------------------------------------
-
-  const monthText =
-    request.months?.length > 0
-      ? request.months
-          .map((month) =>
-            formatMonth(
-              month.monthNumber,
-              month.year
-            )
-          )
-          .join(", ")
-      : "the selected contribution months";
-
-  // ----------------------------------------------------------
-  // 5. Notify member
-  // ----------------------------------------------------------
-
   await prisma.notification.create({
     data: {
       memberId:
         request.memberId,
 
-      createdById: adminId,
+      createdById:
+        Number(adminId),
 
-      title: "Payment Rejected",
+      title:
+        "Payment Rejected",
 
       message:
-        remarks?.trim() ||
-        `Your payment request covering ${monthText} was rejected. Please review the payment details and submit a new request.`,
+        cleanRemarks ||
+        `Your payment request of ₦${Number(
+          request.amount
+        ).toLocaleString(
+          "en-NG",
+          {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          }
+        )} was rejected. Please make the payment and submit a new request.`,
 
       type: "PAYMENT",
+
+      ...(organizationId
+        ? {
+            organizationId:
+              Number(organizationId),
+          }
+        : {}),
     },
   });
 

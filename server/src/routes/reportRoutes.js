@@ -1,6 +1,6 @@
 import express from "express";
 
-import authMiddleware from "../middlewares/authMiddleware.js";
+import authMiddleware from "../middlewares/adminAuthMiddleware.js";
 import authorize from "../middlewares/authorize.js";
 
 import * as reportController from "../controllers/reportController.js";

@@ -22,14 +22,16 @@ export const create = async (req, res, next) => {
 // Member views own payment requests
 export const myRequests = async (req, res, next) => {
   try {
-    const requests =
-      await paymentRequestService.getMemberPaymentRequests(
-        req.member.id
+    const result =
+      await paymentRequestService.getMemberPaymentPageData(
+        req.member.id,
+        req.member.organizationId
       );
 
     res.json({
       success: true,
-      data: requests,
+      data: result.requests,
+      summary: result.summary,
     });
   } catch (error) {
     next(error);
