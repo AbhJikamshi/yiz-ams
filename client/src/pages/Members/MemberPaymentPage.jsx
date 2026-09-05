@@ -9,7 +9,7 @@ import {
 
 import settingsService from "../../services/settingsService";
 
-const NGN = "₦";
+const NGN = "\u20A6";
 
 const formatCurrency = (amount) =>
   `${NGN}${Number(amount || 0).toLocaleString("en-NG", {
@@ -106,7 +106,7 @@ export default function MemberPaymentPage() {
   );
 
   const outstandingAmount = Number(
-    summary?.outstandingAmount || 0
+    summary?.outstanding || 0
   );
 
   const pendingRequest = requests.find(
