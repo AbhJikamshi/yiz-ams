@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
+import { getMemberDashboard } from "../../services/memberApi";
+
 import PaymentRequestHistory from "../components/PaymentRequestHistory";
 
 import {
@@ -9,7 +11,7 @@ import {
 
 import settingsService from "../../services/settingsService";
 
-const NGN = "\u20A6";
+const NGN = "₦";
 
 const formatCurrency = (amount) =>
   `${NGN}${Number(amount || 0).toLocaleString("en-NG", {
@@ -47,11 +49,15 @@ export default function MemberPaymentPage() {
   try {
       setLoading(true);
 
-      const [paymentResponse, settingsResponse] =
-        await Promise.all([
-          getMyPaymentRequests(),
-          settingsService.getMemberSettings(),
-        ]);
+      const [
+        paymentResponse,
+        settingsResponse,
+        dashboardResponse,
+      ] = await Promise.all([
+        getMyPaymentRequests(),
+        settingsService.getMemberSettings(),
+        getMemberDashboard(),
+      ]);
 
       const paymentData =
         paymentResponse?.data ??
@@ -65,9 +71,9 @@ export default function MemberPaymentPage() {
       );
 
       setSummary(
-        paymentResponse?.summary ??
-          paymentResponse?.data?.summary ??
-          null
+        dashboardResponse?.data?.summary ??
+        dashboardResponse?.summary ??
+        null
       );
 
       const settingsData =
@@ -107,6 +113,14 @@ export default function MemberPaymentPage() {
 
   const outstandingAmount = Number(
     summary?.outstanding || 0
+  );
+
+  
+    const outstandingMonths = Math.max(
+  0,
+  Number(summary?.totalDueMonths || 0) -
+    Number(summary?.paidMonths || 0) -
+    Number(summary?.waivedMonths || 0)
   );
 
   const pendingRequest = requests.find(
@@ -399,15 +413,10 @@ export default function MemberPaymentPage() {
               )}
             </p>
 
-            {summary?.totalOutstandingMonths !==
-              undefined && (
+            {outstandingMonths > 0 && (
               <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">
-                {summary.totalOutstandingMonths}{" "}
-                unpaid{" "}
-                {summary.totalOutstandingMonths ===
-                1
-                  ? "month"
-                  : "months"}
+                {outstandingMonths} unpaid{" "}
+                {outstandingMonths === 1 ? "month" : "months"}
               </p>
             )}
           </div>

@@ -1,7 +1,8 @@
 import PDFDocument from "pdfkit";
 import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import prisma from "../config/prisma.js";
-
 import { receiptNumber } from "../utils/receiptNumber.js";
 import { getMonthName } from "../utils/monthName.js";
 
@@ -9,8 +10,18 @@ import { getMonthName } from "../utils/monthName.js";
 // FILE PATHS
 // ======================================================
 
-const FONT_REGULAR = "C:/Windows/Fonts/segoeui.ttf";
-const FONT_BOLD = "C:/Windows/Fonts/segoeuib.ttf";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const FONT_REGULAR = path.join(
+  __dirname,
+  "../assets/fonts/NotoSans-Regular.ttf"
+);
+
+const FONT_BOLD = path.join(
+  __dirname,
+  "../assets/fonts/NotoSans-Bold.ttf"
+);
 
 // ======================================================
 // HELPERS
@@ -152,13 +163,20 @@ export const generateReceiptPDF = async (
   // FONTS
   // ====================================================
 
-  const regularFont = fs.existsSync(FONT_REGULAR)
-    ? FONT_REGULAR
-    : "C:/Windows/Fonts/arial.ttf";
+   if (!fs.existsSync(FONT_REGULAR)) {
+    throw new Error(
+      `PDF regular font not found: ${FONT_REGULAR}`
+    );
+  }
 
-  const boldFont = fs.existsSync(FONT_BOLD)
-    ? FONT_BOLD
-    : "C:/Windows/Fonts/arialbd.ttf";
+  if (!fs.existsSync(FONT_BOLD)) {
+    throw new Error(
+      `PDF bold font not found: ${FONT_BOLD}`
+    );
+  }
+
+  const regularFont = FONT_REGULAR;
+  const boldFont = FONT_BOLD;
 
   // ====================================================
   // COLORS
